@@ -47,6 +47,15 @@ chmod +x install_dex.sh
 3. Open your Linux system's application menu (Super/Windows key) and search for **DeX Mode**.
 4. Click the icon, and enjoy!
 
+## Uninstallation
+
+If you want to remove the DeX Mode shortcut, simply run the uninstall script:
+
+```bash
+chmod +x uninstall.sh
+./uninstall.sh
+```
+
 ## Credits
 
 This script acts as a facilitator and configurator for the **Scrcpy** tool.
