@@ -28,7 +28,7 @@ Open a terminal and run the following commands:
 
 ```bash
 # 1. Clone the repository (or download the script)
-git clone [https://github.com/super-magistro/DeXify.git](https://github.com/super-magistro/DeXify.git)
+git clone https://github.com/super-magistro/DeXify.git
 cd DeXify
 
 # 2. Make the script executable
