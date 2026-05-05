@@ -54,4 +54,4 @@ A huge thank you to the [Genymobile](https://github.com/Genymobile) team for dev
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [License](LICENSE) file for details.
