@@ -9,6 +9,7 @@ It relies on the excellent [scrcpy](https://github.com/Genymobile/scrcpy) tool b
 * **Turnkey Shortcut:** Creates a "DeX Mode" entry in your application menu with a dedicated icon.
 * **Intelligent Power Management:** Uses `systemd-inhibit` to keep your PC awake during sessions and automatically turns off your phone's physical display to save battery and prevent burn-in.
 * **Optimized Scaling:** Pre-configured with a 160 DPI density to ensure windows and icons look native on 1080p monitors.
+* **Seamless Control**: Control the Android desktop environment directly using your PC's keyboard, mouse, and scroll wheel.
 
 ## Prerequisites
 
