@@ -6,50 +6,59 @@ It relies on the excellent [scrcpy](https://github.com/Genymobile/scrcpy) tool b
 
 ## Features
 
-- **Automatic installation:** Cleans up old versions, installs dependencies, and compiles the latest version of `scrcpy` from source.
-- **Desktop Shortcut:** Creates a "DeX Mode" icon directly in your application menu (no terminal required).
-- **Integrated Anti-sleep:** Automatically prevents the PC screen from going to sleep as long as the DeX window is open (via `systemd-inhibit`).
-- **Energy saving:** Turns off the phone's physical screen while in use on the computer.
-- **Real multitasking:** Allows you to physically use the phone while the desktop interface is running on the PC.
+* **Turnkey Shortcut:** Creates a "DeX Mode" entry in your application menu with a dedicated icon.
+* **Intelligent Power Management:** Uses `systemd-inhibit` to keep your PC awake during sessions and automatically turns off your phone's physical display to save battery and prevent burn-in.
+* **Optimized Scaling:** Pre-configured with a 160 DPI density to ensure windows and icons look native on 1080p monitors.
 
 ## Prerequisites
 
-1. **A compatible smartphone:** 
-   - Samsung Galaxy S series (S20 to S26), Note, or Z Fold (for Samsung DeX).
-   - Motorola Edge series (for Ready For).
-   - Smartphones running Android 15/16 that support native desktop mode.
-2. **USB Debugging enabled:** You must have enabled "Developer Options" and "USB Debugging" on your phone.
-3. A USB-C cable capable of data transfer.
-4. A Debian/Ubuntu-based Linux distribution.
+1. **Compatible Hardware:**
+* Samsung Galaxy S series (S8 to S26), Note series, or Z Fold.
+* Motorola Edge or Razr series.
+* Any smartphone running Android 15+ with "Desktop Mode" enabled.
+* A high-quality USB-C 3.1 cable capable of data transfer.
+
+2. **Software & Settings:**
+
+* **OS:** A Debian/Ubuntu-based Linux distribution (Ubuntu, Linux Mint, Zorin OS, etc.).
+* **USB Debugging:** Go to *Settings > About Phone* and tap *Build Number* 7 times to unlock Developer Options. Then, go to *Developer Options* and enable **USB debugging**.
+* **Desktop Mode (Non-Samsung only):** In *Developer Options*, scroll down and enable both **Force desktop mode** and **Enable freeform windows** (a phone reboot may be required).
+
 
 ## Installation
 
-Open a terminal and run the following commands:
+Open your terminal and run the following commands:
 
 ```bash
-# 1. Clone the repository (or download the script)
+# 1. Clone the repository
 git clone https://github.com/super-magistro/DeXify.git
 cd DeXify
 
-# 2. Make the script executable
+# 2. Make the installer executable
 chmod +x install_dex.sh
 
 # 3. Run the installation
 ./install_dex.sh
 ```
 
-*(During installation, you will be prompted for your administrator password to install the necessary dependencies).*
+*Note: The script will prompt for your administrator password once at the start to clear the sudo cache and install the necessary build tools.*
 
-## How to use it?
+## How to use it
 
-1. Connect your smartphone to your PC via the USB cable.
-2. Allow USB debugging on the phone screen if a notification appears.
-3. Open your Linux system's application menu (Super/Windows key) and search for **DeX Mode**.
-4. Click the icon, and enjoy!
+1. Connect your smartphone to your PC via USB.
+2. Accept the "Allow USB Debugging?" prompt on your phone screen if it appears.
+3. Open your Linux system's application menu and search for **DeX Mode**.
+4. Click the icon. Your phone will stay awake, but its screen will turn black to save power and avoid burning screen, while the DeX interface appears on your desktop.
+
+## Troubleshooting
+
+* **"Device not found":** Check your cable and ensure USB Debugging is turned on in Developer Options.
+* **Black screen / No DeX:** Ensure your phone is unlocked when you click the icon for the first time.
+* **Apt lock error:** The script automatically waits for background updates, but you can also manually close your system's Software Updater if it is running.
 
 ## Uninstallation
 
-If you want to remove the DeX Mode shortcut, simply run the uninstall script:
+To remove the shortcuts and the DeXify configuration while keeping the system clean:
 
 ```bash
 chmod +x uninstall.sh
@@ -58,8 +67,10 @@ chmod +x uninstall.sh
 
 ## Credits
 
-This script acts as a facilitator and configurator for the **Scrcpy** tool.
-A huge thank you to the [Genymobile](https://github.com/Genymobile) team for developing `scrcpy`, without which none of this would be possible on Linux.
+DeXify is a wrapper and configurator built upon the incredible work of the Genymobile team.
+
+* Core Engine: [scrcpy](https://github.com/Genymobile/scrcpy)
+* Automation & Configuration: super-magistro
 
 ## License
 
