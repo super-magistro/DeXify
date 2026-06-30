@@ -1,5 +1,5 @@
 #!/bin/bash
-# DeXify: Professional installation script for Desktop Mode via Python GUI wrappers
+# DeXtop Mode: Professional installation script for Desktop Mode via Python GUI wrappers
 
 # Exit on error
 set -e
@@ -8,7 +8,7 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "=========================================="
-echo "          Installing DeXify               "
+echo "          Installing DeXtop Mode          "
 echo "=========================================="
 
 # Request sudo privileges at the very beginning, BEFORE the spinner
@@ -51,6 +51,7 @@ echo -n "[1/5] Removing old versions... "
 (
     sudo snap remove scrcpy > /dev/null 2>&1 || true
     rm -f "$HOME/.local/bin/dexify-run.sh" || true
+    rm -f "$HOME/.local/share/applications/mode-dex.desktop" || true
 ) & spinner $!
 echo "Done!"
 
@@ -71,7 +72,7 @@ echo -n "[3/5] Setting up Python virtual environment... "
     "$DIR/venv/bin/pip" install customtkinter pillow > /dev/null 2>&1
     
     # Pre-generate the app icon
-    "$DIR/venv/bin/python" -c "import sys; sys.path.append('$DIR'); import dexify; dexify.ensure_app_icon()" > /dev/null 2>&1
+    "$DIR/venv/bin/python" -c "import sys; sys.path.append('$DIR'); import dextop; dextop.ensure_app_icon()" > /dev/null 2>&1
 ) & spinner $!
 echo "Done!"
 
@@ -98,18 +99,18 @@ EOF
 echo "Done!"
 
 # --- STEP 5: DE-CLUTTERED SHORTCUT ---
-echo -n "[5/5] Configuring DeX Mode graphical shortcut... "
+echo -n "[5/5] Configuring DeXtop Mode graphical shortcut... "
 (
     mkdir -p "$HOME/.local/share/applications/"
     
     # The desktop shortcut points to the Python GUI inside the virtual environment
-    cat <<EOF > "$HOME/.local/share/applications/mode-dex.desktop"
+    cat <<EOF > "$HOME/.local/share/applications/dextop.desktop"
 [Desktop Entry]
 Version=1.0
-Name=DeX Mode
-Comment=Launch DeXify Desktop Mode wrapper
-Exec=$DIR/venv/bin/python $DIR/dexify.py
-Icon=$HOME/.config/dexify/icon.png
+Name=DeXtop Mode
+Comment=Launch DeXtop Mode wrapper (Samsung DeX & Native Desktop)
+Exec=$DIR/venv/bin/python $DIR/dextop.py
+Icon=$HOME/.config/dextop/icon.png
 Terminal=false
 Type=Application
 Categories=Utility;
@@ -121,4 +122,4 @@ echo "Done!"
 echo "=========================================="
 echo "      Installation successful!            "
 echo "=========================================="
-echo "Search for 'DeX Mode' in your application menu to launch the control GUI."
+echo "Search for 'DeXtop Mode' in your application menu to launch the control GUI."

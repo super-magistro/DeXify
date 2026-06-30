@@ -1,78 +1,94 @@
-# DeXify: Samsung DeX & Desktop Mode on Linux
+# DeXtop Mode: Samsung DeX & Android Desktop Mode on Linux
 
-This script automatically installs and configures a turnkey solution to use your Android smartphone's desktop mode (Samsung DeX, Motorola Ready For, etc.) on Linux distributions (Ubuntu, Debian, Linux Mint, etc.).
+**DeXtop Mode** is a modern and lightweight Python GUI wrapper that launches a virtual second screen displaying your Android smartphone's desktop mode (Samsung DeX, Motorola Ready For, native Android AOSP Desktop Mode, etc.) on Linux distributions (Ubuntu, Debian, Linux Mint, Zorin OS, etc.).
 
-It relies on the excellent [scrcpy](https://github.com/Genymobile/scrcpy) tool by forcing the creation of a virtual display.
+It utilizes the powerful and fast engine of [scrcpy](https://github.com/Genymobile/scrcpy) in the background to handle control and video streaming.
 
-## Features
+---
 
-* **Turnkey Shortcut:** Creates a "DeX Mode" entry in your application menu with a dedicated icon.
-* **Intelligent Power Management:** Uses `systemd-inhibit` to keep your PC awake during sessions and automatically turns off your phone's physical display to save battery and prevent burn-in.
-* **Optimized Scaling:** Pre-configured with a 160 DPI density to ensure windows and icons look native on 1080p monitors.
-* **Seamless Control**: Control the Android desktop environment directly using your PC's keyboard, mouse, and scroll wheel.
+## 🚀 Key Features
 
-## Prerequisites
+* **Modern Control Center (GUI)**: A beautiful CustomTkinter desktop interface in dark mode. No terminal command writing required!
+* **Automated Wireless Debugging (ADB Over Wi-Fi)**:
+  * Integrated **Wireless Pairing (Association)** dialog with step-by-step guidance.
+  * Direct one-click Wi-Fi connection.
+* **Smart Audio Redirection**: Select your preferred output device (e.g. Bluetooth headphones, HDMI, internal PC speakers) dynamically from a dropdown menu using WirePlumber/PipeWire.
+* **Intelligent Power Management (Anti-Veille)**:
+  * Temporarily disables the smartphone's screen timeout (`screen_off_timeout`) while DeXtop Mode is running, and restores it automatically when closed.
+  * Keeps your computer from sleeping during usage via `systemd-inhibit`.
+  * Turns off the physical smartphone screen to save battery and avoid screen burn-in.
+* **Mouse & Keyboard Lock (UHID)**:
+  * Optional relative mouse capturing (UHID) for high precision control, customizable directly in the Settings tab (press `LAlt` or `Super` to release).
+* **Stealth & Clean Integration**:
+  * Hides background `scrcpy` icons from the Linux applications menu.
+  * Automatically hides the DeXtop Mode window during the DeX session to keep your desk clutter-free.
 
-1. **Compatible Hardware:**
-* Samsung Galaxy S series (S8 to S26), Note series, or Z Fold.
-* Motorola Edge or Razr series.
-* Any smartphone running Android 15+ with "Desktop Mode" enabled.
-* A high-quality USB-C 3.1 cable capable of data transfer.
+---
 
-2. **Software & Settings:**
+## 🛠️ Prerequisites
 
-* **OS:** A Debian/Ubuntu-based Linux distribution (Ubuntu, Linux Mint, Zorin OS, etc.).
-* **USB Debugging:** Go to *Settings > About Phone* and tap *Build Number* 7 times to unlock Developer Options. Then, go to *Developer Options* and enable **USB debugging**.
-* **Desktop Mode (Non-Samsung only):** In *Developer Options*, scroll down and enable both **Force desktop mode** and **Enable freeform windows** (a phone reboot may be required).
+1. **Compatible Smartphone**:
+   * Samsung Galaxy S series (S8 to S26), Note series, or Z Fold.
+   * Motorola Edge or Razr series.
+   * Any smartphone running Android 11+ (for wireless) or Android 15+ (for native desktop mode).
+2. **On your Phone**:
+   * Enable **Developer Options** (Settings > About Phone, tap *Build Number* 7 times).
+   * Turn on **USB Debugging** and **Wireless Debugging** in Developer Options.
+3. **On your Computer**:
+   * A Debian/Ubuntu-based distribution (Ubuntu, Mint, Debian, Pop!_OS, Zorin OS, etc.).
 
+---
 
-## Installation
+## 📥 Installation
 
-Open your terminal and run the following commands:
+Open your terminal and execute these commands:
 
 ```bash
-# 1. Clone the repository
+# 1. Clone this repository
 git clone https://github.com/super-magistro/DeXify.git
 cd DeXify
 
 # 2. Make the installer executable
 chmod +x install_dex.sh
 
-# 3. Run the installation
+# 3. Run the installation script
 ./install_dex.sh
 ```
 
-*Note: The script will prompt for your administrator password once at the start to clear the sudo cache and install the necessary build tools.*
+> **Note**: The script will ask for your administrator password at startup to install dependencies (`scrcpy`, `adb`, `python3-tk`, `python3-venv`). It then compiles a custom high-quality desktop icon and sets up a local Python virtual environment.
 
-## How to use it
+---
 
-1. Connect your smartphone to your PC via USB.
-2. Accept the "Allow USB Debugging?" prompt on your phone screen if it appears.
-3. Open your Linux system's application menu and search for **DeX Mode**.
-4. Click the icon. Your phone will stay awake, but its screen will turn black to save power and avoid burning screen, while the DeX interface appears on your desktop.
+## 💡 How to Use
 
-## Troubleshooting
+1. Ensure your phone and PC are on the same Wi-Fi network (or connected via USB).
+2. Open your system's application menu and search for **DeXtop Mode**.
+3. **If using Wi-Fi for the first time**:
+   * Click **Associer un nouvel appareil (Pairing)**.
+   * On your phone, inside *Wireless Debugging*, select *Pair device with pairing code*.
+   * Enter the IP, the pairing port, and the 6-digit code shown, then click **Lancer l'association**.
+4. In the main window, type the connection port shown on the phone (or plug in USB).
+5. Select your preferred **Audio** output in the Audio tab.
+6. Click **Démarrer DeX**.
+   * *Your phone screen will turn off, the control GUI will hide itself, and your DeX window will pop up!*
+   * *When you close the DeX window, the control GUI will reappear.*
 
-* **"Device not found":** Check your cable and ensure USB Debugging is turned on in Developer Options.
-* **Black screen / No DeX:** Ensure your phone is unlocked when you click the icon for the first time.
-* **Apt lock error:** The script automatically waits for background updates, but you can also manually close your system's Software Updater if it is running.
+---
 
-## Uninstallation
+## 🗑️ Uninstallation
 
-To remove the shortcuts and the DeXify configuration while keeping the system clean:
+To remove DeXtop Mode, shortcuts, configurations, and the Python virtual environment:
 
 ```bash
 chmod +x uninstall.sh
 ./uninstall.sh
 ```
 
-## Credits
+---
 
-DeXify is a wrapper and configurator built upon the incredible work of the Genymobile team.
+## 💳 Credits
 
-* Core Engine: [scrcpy](https://github.com/Genymobile/scrcpy)
-* Automation & Configuration: super-magistro
+* Engine: [scrcpy](https://github.com/Genymobile/scrcpy) by Genymobile.
+* Wrapper & Configurator: super-magistro.
 
-## License
-
-This project is licensed under the MIT License - see the [License](LICENSE) file for details.
+Licensed under the MIT License. See [LICENSE](LICENSE) for details.

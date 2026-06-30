@@ -1,5 +1,5 @@
 #!/bin/bash
-# DeXify: Professional uninstallation script
+# DeXtop Mode: Professional uninstallation script
 
 # Exit on error
 set -e
@@ -33,15 +33,17 @@ spinner() {
 }
 
 echo "=========================================="
-echo "          Uninstalling DeXify             "
+echo "          Uninstalling DeXtop Mode        "
 echo "=========================================="
 
 # --- STEP 1: REMOVE SHORTCUTS ---
-echo -n "[1/3] Removing desktop shortcuts... "
+echo -n "[1/3] Removing desktop shortcuts & configs... "
 (
+    rm -f "$HOME/.local/share/applications/dextop.desktop"
     rm -f "$HOME/.local/share/applications/mode-dex.desktop"
     rm -f "$HOME/.local/share/applications/scrcpy.desktop"
     rm -f "$HOME/.local/share/applications/scrcpy-console.desktop"
+    rm -rf "$HOME/.config/dextop"
     rm -rf "$HOME/.config/dexify"
 ) & spinner $!
 echo "Done!"
@@ -63,7 +65,7 @@ echo -n "[3/3] Removing local Python virtual environment & caches... "
 echo "Done!"
 
 echo "=========================================="
-echo "      DeXify successfully removed!        "
+echo "    DeXtop Mode successfully removed!     "
 echo "=========================================="
 echo ""
 echo "Note: Scrcpy and its system dependencies remain installed."

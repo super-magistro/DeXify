@@ -15,12 +15,12 @@ from PIL import Image, ImageDraw, ImageTk
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-CONFIG_DIR = os.path.expanduser("~/.config/dexify")
+CONFIG_DIR = os.path.expanduser("~/.config/dextop")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 ICON_FILE = os.path.join(CONFIG_DIR, "icon.png")
 
 def ensure_app_icon():
-    """Generates a premium custom icon for DeXify if it doesn't exist."""
+    """Generates a premium custom icon for DeXtop Mode if it doesn't exist."""
     if os.path.exists(ICON_FILE):
         return
         
@@ -153,11 +153,11 @@ class PairingDialog(ctk.CTkToplevel):
         threading.Thread(target=run_pair, daemon=True).start()
 
 
-class DeXifyApp(ctk.CTk):
+class DeXtopModeApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         
-        self.title("DeXify")
+        self.title("DeXtop Mode")
         self.geometry("640x550")
         self.resizable(False, False)
         
@@ -230,7 +230,7 @@ class DeXifyApp(ctk.CTk):
         
         self.title_label = ctk.CTkLabel(
             self.title_frame, 
-            text="DeXify", 
+            text="DeXtop Mode", 
             font=ctk.CTkFont(size=24, weight="bold")
         )
         self.title_label.pack(side="left")
@@ -363,7 +363,7 @@ class DeXifyApp(ctk.CTk):
 
         # Audio redirection explanation
         info_txt = (
-            "DeXify utilise PipeWire pour rediriger le son.\n"
+            "DeXtop Mode utilise PipeWire pour rediriger le son.\n"
             "Changer de périphérique ici modifiera la sortie par défaut pendant la session DeX."
         )
         ctk.CTkLabel(
@@ -701,7 +701,7 @@ class DeXifyApp(ctk.CTk):
                 cmd = [
                     "systemd-inhibit", 
                     "--what=idle", 
-                    "--who=DeXify", 
+                    "--who=DeXtop Mode", 
                     "--why=Using desktop mode", 
                     "scrcpy", 
                     "-s", device, 
@@ -754,7 +754,7 @@ class DeXifyApp(ctk.CTk):
                         print(f"Could not restore timeout: {e}")
                 self.old_timeout = None
                 
-                # Restore DeXify window and reset launch button state
+                # Restore DeXtop Mode window and reset launch button state
                 self.after(0, self.deiconify)
                 self.after(0, lambda: self.btn_launch.configure(
                     text="Démarrer DeX", 
@@ -777,6 +777,6 @@ class DeXifyApp(ctk.CTk):
         self.destroy()
 
 if __name__ == "__main__":
-    app = DeXifyApp()
+    app = DeXtopModeApp()
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
