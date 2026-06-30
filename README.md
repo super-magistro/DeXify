@@ -64,12 +64,12 @@ chmod +x install_dex.sh
 1. Ensure your phone and PC are on the same Wi-Fi network (or connected via USB).
 2. Open your system's application menu and search for **DeXtop Mode**.
 3. **If using Wi-Fi for the first time**:
-   * Click **Associer un nouvel appareil (Pairing)**.
+   * Click **Pair a New Device**.
    * On your phone, inside *Wireless Debugging*, select *Pair device with pairing code*.
-   * Enter the IP, the pairing port, and the 6-digit code shown, then click **Lancer l'association**.
+   * Enter the IP, the pairing port, and the 6-digit code shown, then click **Start Pairing**.
 4. In the main window, type the connection port shown on the phone (or plug in USB).
 5. Select your preferred **Audio** output in the Audio tab.
-6. Click **Démarrer DeX**.
+6. Click **Start DeX**.
    * *Your phone screen will turn off, the control GUI will hide itself, and your DeX window will pop up!*
    * *When you close the DeX window, the control GUI will reappear.*
 
