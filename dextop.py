@@ -66,7 +66,7 @@ class PairingDialog(ctk.CTkToplevel):
     def __init__(self, parent, default_ip=""):
         super().__init__(parent)
         self.parent = parent
-        self.title("Association sans fil")
+        self.title("Wireless Pairing")
         self.geometry("400x500")
         self.resizable(False, False)
         self.transient(parent)
@@ -82,26 +82,26 @@ class PairingDialog(ctk.CTkToplevel):
         
         ctk.CTkLabel(
             self, 
-            text="Associer un nouvel appareil", 
+            text="Pair a New Device", 
             font=ctk.CTkFont(size=16, weight="bold")
         ).grid(row=0, column=0, columnspan=2, padx=20, pady=20)
         
-        ctk.CTkLabel(self, text="Adresse IP :").grid(row=1, column=0, padx=20, pady=10, sticky="w")
+        ctk.CTkLabel(self, text="IP Address:").grid(row=1, column=0, padx=20, pady=10, sticky="w")
         self.entry_ip = ctk.CTkEntry(self, placeholder_text="192.168.x.x")
         self.entry_ip.insert(0, default_ip)
         self.entry_ip.grid(row=1, column=1, padx=20, pady=10, sticky="ew")
         
-        ctk.CTkLabel(self, text="Port d'association :").grid(row=2, column=0, padx=20, pady=10, sticky="w")
-        self.entry_port = ctk.CTkEntry(self, placeholder_text="ex: 39361")
+        ctk.CTkLabel(self, text="Pairing Port:").grid(row=2, column=0, padx=20, pady=10, sticky="w")
+        self.entry_port = ctk.CTkEntry(self, placeholder_text="e.g., 39361")
         self.entry_port.grid(row=2, column=1, padx=20, pady=10, sticky="ew")
         
-        ctk.CTkLabel(self, text="Code d'association :").grid(row=3, column=0, padx=20, pady=10, sticky="w")
-        self.entry_code = ctk.CTkEntry(self, placeholder_text="6 chiffres")
+        ctk.CTkLabel(self, text="Pairing Code:").grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        self.entry_code = ctk.CTkEntry(self, placeholder_text="6 digits")
         self.entry_code.grid(row=3, column=1, padx=20, pady=10, sticky="ew")
         
         self.btn_pair = ctk.CTkButton(
             self,
-            text="Lancer l'association",
+            text="Start Pairing",
             command=self.start_pairing
         )
         self.btn_pair.grid(row=4, column=0, columnspan=2, padx=20, pady=15, sticky="ew")
@@ -111,11 +111,11 @@ class PairingDialog(ctk.CTkToplevel):
         self.help_frame.grid(row=5, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
         
         help_text = (
-            "📌 Où trouver ces informations sur Android ?\n\n"
-            "1. Paramètres > Options de développement.\n"
-            "2. Activez et cliquez sur 'Débogage sans fil'.\n"
-            "3. Choisissez 'Associer l'appareil à l'aide d'un code'.\n"
-            "4. Copiez le Code d'association (6 chiffres) et l'Adresse IP et port (ex: 192.168.x.x:39361) dans les champs ci-dessus."
+            "📌 Where to find this information on Android?\n\n"
+            "1. Go to Settings > Developer Options.\n"
+            "2. Enable and click on 'Wireless debugging'.\n"
+            "3. Select 'Pair device with pairing code'.\n"
+            "4. Copy the Pairing Code (6 digits) and the IP address & port (e.g., 192.168.x.x:39361) into the fields above."
         )
         self.help_lbl = ctk.CTkLabel(
             self.help_frame,
@@ -132,21 +132,21 @@ class PairingDialog(ctk.CTkToplevel):
         code = self.entry_code.get().strip()
         
         if not ip or not port or not code:
-            messagebox.showerror("Erreur", "Tous les champs doivent être renseignés.")
+            messagebox.showerror("Error", "All fields must be filled.")
             return
             
-        self.btn_pair.configure(text="Association en cours...", state="disabled")
+        self.btn_pair.configure(text="Pairing in progress...", state="disabled")
         
         def run_pair():
             success, message = self.parent.run_adb_pair(ip, port, code)
             
             def on_done():
-                self.btn_pair.configure(text="Lancer l'association", state="normal")
+                self.btn_pair.configure(text="Start Pairing", state="normal")
                 if success:
-                    messagebox.showinfo("Succès", "L'appareil a été associé avec succès !")
+                    messagebox.showinfo("Success", "The device has been successfully paired!")
                     self.destroy()
                 else:
-                    messagebox.showerror("Échec de l'association", f"L'association a échoué :\n\n{message}")
+                    messagebox.showerror("Pairing Failed", f"Pairing failed:\n\n{message}")
                     
             self.parent.after(0, on_done)
             
@@ -237,7 +237,7 @@ class DeXtopModeApp(ctk.CTk):
         
         self.status_indicator = ctk.CTkLabel(
             self.title_frame,
-            text="● Déconnecté",
+            text="● Disconnected",
             text_color="#ff5555",
             font=ctk.CTkFont(size=14, weight="bold")
         )
@@ -247,9 +247,9 @@ class DeXtopModeApp(ctk.CTk):
         self.content_frame = ctk.CTkTabview(self)
         self.content_frame.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
         
-        self.tab_conn = self.content_frame.add("Connexion")
+        self.tab_conn = self.content_frame.add("Connection")
         self.tab_audio = self.content_frame.add("Audio")
-        self.tab_settings = self.content_frame.add("Paramètres")
+        self.tab_settings = self.content_frame.add("Settings")
         
         self.setup_connection_tab()
         self.setup_audio_tab()
@@ -258,7 +258,7 @@ class DeXtopModeApp(ctk.CTk):
         # 3. Launch Button
         self.btn_launch = ctk.CTkButton(
             self,
-            text="Démarrer DeX",
+            text="Start DeX",
             font=ctk.CTkFont(size=16, weight="bold"),
             height=50,
             command=self.toggle_dex,
@@ -275,9 +275,9 @@ class DeXtopModeApp(ctk.CTk):
         self.instr_banner.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
         
         instr_text = (
-            "💡 Consignes importantes :\n"
-            "1. Activez le débogage USB/Sans fil dans les options de développement.\n"
-            "2. Déverrouillez l'écran de votre téléphone lors du premier lancement de DeX."
+            "💡 Important instructions:\n"
+            "1. Enable USB/Wireless debugging in your phone's Developer Options.\n"
+            "2. Unlock your phone screen during the initial DeX launch."
         )
         self.instr_lbl = ctk.CTkLabel(
             self.instr_banner,
@@ -293,7 +293,7 @@ class DeXtopModeApp(ctk.CTk):
         self.wifi_group.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
         self.wifi_group.columnconfigure(1, weight=1)
         
-        ctk.CTkLabel(self.wifi_group, text="IP Téléphone:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        ctk.CTkLabel(self.wifi_group, text="Phone IP:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         self.entry_ip = ctk.CTkEntry(self.wifi_group, placeholder_text="192.168.x.x")
         self.entry_ip.insert(0, self.config.get("last_ip", ""))
         self.entry_ip.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
@@ -306,14 +306,14 @@ class DeXtopModeApp(ctk.CTk):
         # Action Buttons
         self.btn_connect = ctk.CTkButton(
             self.tab_conn,
-            text="Connecter en Wi-Fi",
+            text="Connect over Wi-Fi",
             command=self.connect_wifi
         )
         self.btn_connect.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
         
         self.btn_disconnect = ctk.CTkButton(
             self.tab_conn,
-            text="Déconnecter",
+            text="Disconnect",
             fg_color="#444444",
             hover_color="#555555",
             command=self.disconnect_all
@@ -323,7 +323,7 @@ class DeXtopModeApp(ctk.CTk):
         # Wireless Pairing Button
         self.btn_pair_open = ctk.CTkButton(
             self.tab_conn,
-            text="Associer un nouvel appareil (Pairing)",
+            text="Pair a New Device",
             fg_color="#1a4f7a",
             hover_color="#246a9f",
             command=self.open_pairing_dialog
@@ -333,7 +333,7 @@ class DeXtopModeApp(ctk.CTk):
         # Current device details
         self.lbl_device_details = ctk.CTkLabel(
             self.tab_conn,
-            text="Aucun appareil détecté.",
+            text="No device detected.",
             text_color="gray"
         )
         self.lbl_device_details.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky="w")
@@ -343,28 +343,28 @@ class DeXtopModeApp(ctk.CTk):
         
         ctk.CTkLabel(
             self.tab_audio, 
-            text="Sélectionner la sortie audio pour DeX :",
+            text="Select audio output for DeX:",
             font=ctk.CTkFont(size=14, weight="bold")
         ).grid(row=0, column=0, padx=10, pady=10, sticky="w")
         
         self.audio_dropdown = ctk.CTkOptionMenu(
             self.tab_audio,
-            values=["Par défaut"],
+            values=["Default"],
             command=self.on_audio_selected
         )
         self.audio_dropdown.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
         
         self.btn_refresh_audio = ctk.CTkButton(
             self.tab_audio,
-            text="Rafraîchir les périphériques",
+            text="Refresh Devices",
             command=self.refresh_audio_devices
         )
         self.btn_refresh_audio.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         # Audio redirection explanation
         info_txt = (
-            "DeXtop Mode utilise PipeWire pour rediriger le son.\n"
-            "Changer de périphérique ici modifiera la sortie par défaut pendant la session DeX."
+            "DeXtop Mode uses PipeWire to redirect audio.\n"
+            "Changing the device here will update the default system output during the DeX session."
         )
         ctk.CTkLabel(
             self.tab_audio,
@@ -379,7 +379,7 @@ class DeXtopModeApp(ctk.CTk):
         # Screen timeout switch
         self.switch_timeout = ctk.CTkSwitch(
             self.tab_settings,
-            text="Gérer l'anti-veille automatique (screen_off_timeout)",
+            text="Manage automatic anti-sleep (screen_off_timeout)",
             command=self.on_settings_changed
         )
         if self.config.get("timeout_handling", True):
@@ -391,7 +391,7 @@ class DeXtopModeApp(ctk.CTk):
         # Mouse lock (UHID) switch
         self.switch_mouse = ctk.CTkSwitch(
             self.tab_settings,
-            text="Capturer la souris dans la fenêtre DeX (Mode UHID)",
+            text="Capture mouse inside DeX window (UHID Mode)",
             command=self.on_settings_changed
         )
         if self.config.get("mouse_uhid", False):
@@ -403,7 +403,7 @@ class DeXtopModeApp(ctk.CTk):
         # Keyboard lock (UHID) switch
         self.switch_keyboard = ctk.CTkSwitch(
             self.tab_settings,
-            text="Capturer le clavier dans la fenêtre DeX (Mode UHID)",
+            text="Capture keyboard inside DeX window (UHID Mode)",
             command=self.on_settings_changed
         )
         if self.config.get("keyboard_uhid", False):
@@ -414,9 +414,9 @@ class DeXtopModeApp(ctk.CTk):
 
         # Info note about UHID mode release keys
         uhid_info = (
-            "💡 En mode de capture physique (UHID) :\n"
-            "• Votre souris/clavier réagissent comme s'ils étaient branchés directement sur le téléphone.\n"
-            "• Appuyez sur la touche Alt Gauche ou Super (Touche Windows) pour libérer le curseur."
+            "💡 In physical capture mode (UHID):\n"
+            "• Your mouse/keyboard behave as if plugged directly into the phone.\n"
+            "• Press Left Alt or Super (Windows key) to release the cursor."
         )
         uhid_lbl = ctk.CTkLabel(
             self.tab_settings,
@@ -431,7 +431,7 @@ class DeXtopModeApp(ctk.CTk):
         # Info note about hidden scrcpy shortcut
         info_lbl = ctk.CTkLabel(
             self.tab_settings,
-            text="Note : L'application Scrcpy est masquée dans vos menus pour éviter toute pollution visuelle.",
+            text="Note: The Scrcpy application is hidden in your menus to avoid visual clutter.",
             font=ctk.CTkFont(size=11, slant="italic"),
             text_color="gray",
             justify="left",
@@ -447,10 +447,10 @@ class DeXtopModeApp(ctk.CTk):
                 if devices:
                     # Select first active device
                     self.connected_device = devices[0]
-                    self.update_status(True, f"Connecté : {self.connected_device}")
+                    self.update_status(True, f"Connected: {self.connected_device}")
                 else:
                     self.connected_device = None
-                    self.update_status(False, "Déconnecté")
+                    self.update_status(False, "Disconnected")
             time.sleep(2.5)
             
     def get_adb_devices(self):
@@ -473,18 +473,18 @@ class DeXtopModeApp(ctk.CTk):
             if connected:
                 self.status_indicator.configure(text=f"● {text}", text_color="#55ff55")
                 self.lbl_device_details.configure(
-                    text=f"Appareil connecté : {self.connected_device}", 
+                    text=f"Connected device: {self.connected_device}", 
                     text_color="#55ff55"
                 )
                 if self.dex_process is None:
-                    self.btn_launch.configure(state="normal", text="Démarrer DeX", fg_color=["#3B8ED0", "#1F6AA5"])
+                    self.btn_launch.configure(state="normal", text="Start DeX", fg_color=["#3B8ED0", "#1F6AA5"])
             else:
-                self.status_indicator.configure(text="● Déconnecté", text_color="#ff5555")
+                self.status_indicator.configure(text="● Disconnected", text_color="#ff5555")
                 self.lbl_device_details.configure(
-                    text="Aucun appareil détecté. Branchez en USB ou connectez en Wi-Fi.",
+                    text="No device detected. Plug in USB or connect over Wi-Fi.",
                     text_color="gray"
                 )
-                self.btn_launch.configure(state="disabled", text="En attente d'appareil...")
+                self.btn_launch.configure(state="disabled", text="Waiting for device...")
         self.after(0, gui_update)
 
     def connect_wifi(self):
@@ -492,12 +492,12 @@ class DeXtopModeApp(ctk.CTk):
         port = self.entry_port.get().strip()
         
         if not ip or not port:
-            messagebox.showerror("Erreur de saisie", "Veuillez entrer l'adresse IP et le port du débogage sans fil.")
+            messagebox.showerror("Input Error", "Please enter the wireless debugging IP and port.")
             return
             
         self.is_connecting = True
-        self.status_indicator.configure(text="● Connexion...", text_color="orange")
-        self.lbl_device_details.configure(text=f"Tentative de connexion à {ip}:{port}...", text_color="orange")
+        self.status_indicator.configure(text="● Connecting...", text_color="orange")
+        self.lbl_device_details.configure(text=f"Attempting connection to {ip}:{port}...", text_color="orange")
         
         # Save to config
         self.config["last_ip"] = ip
@@ -521,21 +521,21 @@ class DeXtopModeApp(ctk.CTk):
                     matched = [d for d in devices if target in d or d.startswith(ip)]
                     if matched:
                         self.connected_device = matched[0]
-                        self.update_status(True, f"Connecté en Wi-Fi : {self.connected_device}")
+                        self.update_status(True, f"Connected over Wi-Fi: {self.connected_device}")
                     else:
                         self.connected_device = target
-                        self.update_status(True, f"Connecté : {target}")
+                        self.update_status(True, f"Connected: {target}")
                 else:
                     self.after(0, lambda: messagebox.showerror(
-                        "Échec de connexion", 
-                        f"Impossible de se connecter : {result.stdout.strip()}"
+                        "Connection Failed", 
+                        f"Unable to connect: {result.stdout.strip()}"
                     ))
                     self.connected_device = None
-                    self.update_status(False, "Déconnecté")
+                    self.update_status(False, "Disconnected")
             except Exception as e:
-                self.after(0, lambda: messagebox.showerror("Erreur", f"Erreur ADB : {str(e)}"))
+                self.after(0, lambda: messagebox.showerror("Error", f"ADB Error: {str(e)}"))
                 self.connected_device = None
-                self.update_status(False, "Déconnecté")
+                self.update_status(False, "Disconnected")
             finally:
                 self.is_connecting = False
                 
@@ -546,7 +546,7 @@ class DeXtopModeApp(ctk.CTk):
             try:
                 subprocess.run(["adb", "disconnect"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 self.connected_device = None
-                self.update_status(False, "Déconnecté")
+                self.update_status(False, "Disconnected")
             except Exception:
                 pass
         threading.Thread(target=run_disconnect, daemon=True).start()
@@ -610,7 +610,7 @@ class DeXtopModeApp(ctk.CTk):
                             sinks[sink_name] = sink_id
                 
                 self.sinks_map = sinks
-                values = ["Par défaut"] + list(sinks.keys())
+                values = ["Default"] + list(sinks.keys())
                 
                 # Update dropdown safely
                 def update_dropdown():
@@ -620,7 +620,7 @@ class DeXtopModeApp(ctk.CTk):
                     if saved_sink in sinks:
                         self.audio_dropdown.set(saved_sink)
                     else:
-                        self.audio_dropdown.set("Par défaut")
+                        self.audio_dropdown.set("Default")
                 self.after(0, update_dropdown)
             except Exception as e:
                 print(f"Error listing audio devices: {e}")
@@ -629,10 +629,10 @@ class DeXtopModeApp(ctk.CTk):
         threading.Thread(target=run_refresh, daemon=True).start()
 
     def on_audio_selected(self, choice):
-        self.config["selected_sink"] = choice if choice != "Par défaut" else ""
+        self.config["selected_sink"] = choice if choice != "Default" else ""
         self.save_config()
         # If user changed it and DeX is running, apply immediately
-        if choice != "Par défaut" and choice in self.sinks_map:
+        if choice != "Default" and choice in self.sinks_map:
             sink_id = self.sinks_map[choice]
             try:
                 subprocess.run(["wpctl", "set-default", str(sink_id)])
@@ -657,7 +657,7 @@ class DeXtopModeApp(ctk.CTk):
         if not self.connected_device:
             return
             
-        self.btn_launch.configure(text="Démarrage en cours...", state="disabled")
+        self.btn_launch.configure(text="Starting up...", state="disabled")
         
         # Read parameters
         device = self.connected_device
@@ -665,7 +665,7 @@ class DeXtopModeApp(ctk.CTk):
         selected_audio = self.audio_dropdown.get()
         
         # Audio redirect if selected
-        if selected_audio != "Par défaut" and selected_audio in self.sinks_map:
+        if selected_audio != "Default" and selected_audio in self.sinks_map:
             sink_id = self.sinks_map[selected_audio]
             try:
                 subprocess.run(["wpctl", "set-default", str(sink_id)])
@@ -728,7 +728,7 @@ class DeXtopModeApp(ctk.CTk):
                 
                 # Update button in GUI
                 self.after(0, lambda: self.btn_launch.configure(
-                    text="Arrêter DeX", 
+                    text="Stop DeX", 
                     state="normal", 
                     fg_color="#ff5555", 
                     hover_color="#ff3333"
@@ -738,7 +738,7 @@ class DeXtopModeApp(ctk.CTk):
                 self.dex_process.wait()
                 
             except Exception as e:
-                self.after(0, lambda: messagebox.showerror("Erreur DeX", f"Erreur lors du lancement : {str(e)}"))
+                self.after(0, lambda: messagebox.showerror("DeX Error", f"Error during launch: {str(e)}"))
             finally:
                 # Cleanup
                 self.dex_process = None
@@ -757,7 +757,7 @@ class DeXtopModeApp(ctk.CTk):
                 # Restore DeXtop Mode window and reset launch button state
                 self.after(0, self.deiconify)
                 self.after(0, lambda: self.btn_launch.configure(
-                    text="Démarrer DeX", 
+                    text="Start DeX", 
                     fg_color=["#3B8ED0", "#1F6AA5"],
                     hover_color=["#2B72A5", "#144870"]
                 ))
