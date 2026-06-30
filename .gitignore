@@ -1,3 +1,16 @@
 .idea/
 *.swp
 *.log
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Python virtual environments
+venv/
+.venv/
+env/
+.env/

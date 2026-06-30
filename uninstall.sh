@@ -4,6 +4,9 @@
 # Exit on error
 set -e
 
+# Dynamically get the repository directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # --- UI SETTINGS ---
 # Hide cursor for a cleaner look
 tput civis
@@ -34,17 +37,28 @@ echo "          Uninstalling DeXify             "
 echo "=========================================="
 
 # --- STEP 1: REMOVE SHORTCUTS ---
-echo -n "[1/2] Removing desktop shortcuts... "
+echo -n "[1/3] Removing desktop shortcuts... "
 (
-    rm -f ~/.local/share/applications/mode-dex.desktop
-    rm -f ~/.local/share/applications/samsung-dex.desktop
+    rm -f "$HOME/.local/share/applications/mode-dex.desktop"
+    rm -f "$HOME/.local/share/applications/scrcpy.desktop"
+    rm -f "$HOME/.local/share/applications/scrcpy-console.desktop"
+    rm -rf "$HOME/.config/dexify"
 ) & spinner $!
 echo "Done!"
 
 # --- STEP 2: REFRESH DATABASE ---
-echo -n "[2/2] Refreshing application database... "
+echo -n "[2/3] Refreshing application database... "
 (
-    update-desktop-database ~/.local/share/applications/ > /dev/null 2>&1
+    update-desktop-database "$HOME/.local/share/applications/" > /dev/null 2>&1
+) & spinner $!
+echo "Done!"
+
+# --- STEP 3: REMOVE VIRTUAL ENVIRONMENT ---
+echo -n "[3/3] Removing local Python virtual environment & caches... "
+(
+    rm -rf "$DIR/venv"
+    find "$DIR" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+    find "$DIR" -type f -name "*.pyc" -delete 2>/dev/null || true
 ) & spinner $!
 echo "Done!"
 
@@ -52,7 +66,7 @@ echo "=========================================="
 echo "      DeXify successfully removed!        "
 echo "=========================================="
 echo ""
-echo "Note: Scrcpy and its dependencies remain installed."
+echo "Note: Scrcpy and its system dependencies remain installed."
 echo "If you wish to completely remove Scrcpy from your system, you can run:"
-echo "sudo rm -rf /usr/local/bin/scrcpy /usr/local/share/scrcpy /usr/local/share/applications/scrcpy*.desktop"
+echo "sudo apt remove --purge scrcpy"
 echo "=========================================="
