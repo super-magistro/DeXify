@@ -158,7 +158,7 @@ class DeXtopModeApp(ctk.CTk):
         super().__init__(className="dextop")
         
         self.title("DeXtop Mode")
-        self.geometry("640x550")
+        self.geometry("660x650")
         self.resizable(False, False)
         
         # App state
@@ -207,7 +207,9 @@ class DeXtopModeApp(ctk.CTk):
             "selected_sink": "",
             "mouse_uhid": False,
             "keyboard_uhid": False,
-            "fix_oneui_gestures": True
+            "fix_oneui_gestures": True,
+            "display_mode": "Secondary Display (DeX)",
+            "display_dpi": "160"
         }
         
     def save_config(self):
@@ -240,7 +242,7 @@ class DeXtopModeApp(ctk.CTk):
             self.title_frame,
             text="● Disconnected",
             text_color="#ff5555",
-            font=ctk.CTkFont(size=14, weight="bold")
+            font=ctk.CTkFont(size=12, weight="bold")
         )
         self.status_indicator.pack(side="right", padx=10)
 
@@ -329,7 +331,17 @@ class DeXtopModeApp(ctk.CTk):
             hover_color="#246a9f",
             command=self.open_pairing_dialog
         )
-        self.btn_pair_open.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
+        self.btn_pair_open.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
+
+        # Manual Repair Gestures Button on Main Connection Tab
+        self.btn_repair_gestures_main = ctk.CTkButton(
+            self.tab_conn,
+            text="🔄 Repair Phone Gestures (One UI)",
+            fg_color="#2b72a5",
+            hover_color="#1d5075",
+            command=self.manual_repair_gestures
+        )
+        self.btn_repair_gestures_main.grid(row=4, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
 
         # Current device details
         self.lbl_device_details = ctk.CTkLabel(
@@ -337,7 +349,7 @@ class DeXtopModeApp(ctk.CTk):
             text="No device detected.",
             text_color="gray"
         )
-        self.lbl_device_details.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky="w")
+        self.lbl_device_details.grid(row=5, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="w")
 
     def setup_audio_tab(self):
         self.tab_audio.columnconfigure(0, weight=1)
@@ -377,6 +389,39 @@ class DeXtopModeApp(ctk.CTk):
     def setup_settings_tab(self):
         self.tab_settings.columnconfigure(0, weight=1)
         
+        # Display Mode Option
+        ctk.CTkLabel(
+            self.tab_settings,
+            text="Display Mode:",
+            font=ctk.CTkFont(size=13, weight="bold")
+        ).grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
+        
+        self.opt_display_mode = ctk.CTkOptionMenu(
+            self.tab_settings,
+            values=["Secondary Display (DeX)", "Main Display Mirroring"],
+            command=lambda _: self.on_settings_changed()
+        )
+        saved_mode = self.config.get("display_mode", "Secondary Display (DeX)")
+        self.opt_display_mode.set(saved_mode)
+        self.opt_display_mode.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="ew")
+
+        # DPI Option for Secondary Display
+        ctk.CTkLabel(
+            self.tab_settings,
+            text="DeX Display Scale (DPI):",
+            font=ctk.CTkFont(size=13, weight="bold")
+        ).grid(row=2, column=0, padx=10, pady=(5, 2), sticky="w")
+
+        self.opt_dpi = ctk.CTkOptionMenu(
+            self.tab_settings,
+            values=["160 (Desktop Standard)", "200 (Medium Scale)", "240 (Large Scale)"],
+            command=lambda _: self.on_settings_changed()
+        )
+        saved_dpi = self.config.get("display_dpi", "160")
+        matched_dpi = [v for v in ["160 (Desktop Standard)", "200 (Medium Scale)", "240 (Large Scale)"] if saved_dpi in v]
+        self.opt_dpi.set(matched_dpi[0] if matched_dpi else "160 (Desktop Standard)")
+        self.opt_dpi.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
+
         # Screen timeout switch
         self.switch_timeout = ctk.CTkSwitch(
             self.tab_settings,
@@ -387,7 +432,7 @@ class DeXtopModeApp(ctk.CTk):
             self.switch_timeout.select()
         else:
             self.switch_timeout.deselect()
-        self.switch_timeout.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        self.switch_timeout.grid(row=4, column=0, padx=10, pady=10, sticky="w")
 
         # One UI gesture repair switch
         self.switch_fix_gestures = ctk.CTkSwitch(
@@ -399,8 +444,18 @@ class DeXtopModeApp(ctk.CTk):
             self.switch_fix_gestures.select()
         else:
             self.switch_fix_gestures.deselect()
-        self.switch_fix_gestures.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        self.switch_fix_gestures.grid(row=5, column=0, padx=10, pady=5, sticky="w")
         
+        # Manual One UI repair button directly under the switch
+        self.btn_repair_gestures = ctk.CTkButton(
+            self.tab_settings,
+            text="🔄 Repair One UI Gestures Now",
+            command=self.manual_repair_gestures,
+            fg_color="#1a4f7a",
+            hover_color="#246a9f"
+        )
+        self.btn_repair_gestures.grid(row=6, column=0, padx=10, pady=8, sticky="ew")
+
         # Mouse lock (UHID) switch
         self.switch_mouse = ctk.CTkSwitch(
             self.tab_settings,
@@ -411,7 +466,7 @@ class DeXtopModeApp(ctk.CTk):
             self.switch_mouse.select()
         else:
             self.switch_mouse.deselect()
-        self.switch_mouse.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        self.switch_mouse.grid(row=7, column=0, padx=10, pady=5, sticky="w")
 
         # Keyboard lock (UHID) switch
         self.switch_keyboard = ctk.CTkSwitch(
@@ -423,17 +478,7 @@ class DeXtopModeApp(ctk.CTk):
             self.switch_keyboard.select()
         else:
             self.switch_keyboard.deselect()
-        self.switch_keyboard.grid(row=3, column=0, padx=10, pady=10, sticky="w")
-
-        # Manual One UI repair button
-        self.btn_repair_gestures = ctk.CTkButton(
-            self.tab_settings,
-            text="🔄 Repair One UI Gestures Now",
-            command=self.manual_repair_gestures,
-            fg_color="#1a4f7a",
-            hover_color="#246a9f"
-        )
-        self.btn_repair_gestures.grid(row=4, column=0, padx=10, pady=15, sticky="w")
+        self.switch_keyboard.grid(row=8, column=0, padx=10, pady=5, sticky="w")
 
         # Info note about UHID mode release keys
         uhid_info = (
@@ -449,7 +494,7 @@ class DeXtopModeApp(ctk.CTk):
             justify="left",
             wraplength=520
         )
-        uhid_lbl.grid(row=5, column=0, padx=10, pady=10, sticky="w")
+        uhid_lbl.grid(row=9, column=0, padx=10, pady=8, sticky="w")
 
         # Info note about hidden scrcpy shortcut
         info_lbl = ctk.CTkLabel(
@@ -460,7 +505,7 @@ class DeXtopModeApp(ctk.CTk):
             justify="left",
             wraplength=500
         )
-        info_lbl.grid(row=6, column=0, padx=10, pady=(10, 0), sticky="w")
+        info_lbl.grid(row=10, column=0, padx=10, pady=(5, 0), sticky="w")
 
     # --- DEVICE MONITORING & CONNECTION ---
     def monitor_devices(self):
@@ -499,6 +544,18 @@ class DeXtopModeApp(ctk.CTk):
                     text=f"Connected device: {self.connected_device}", 
                     text_color="#55ff55"
                 )
+                # Auto fill IP and Port entries if connected over Wi-Fi
+                if ":" in str(self.connected_device):
+                    try:
+                        parts = str(self.connected_device).split(":")
+                        ip, port = parts[0], parts[1]
+                        if not self.entry_ip.get().strip():
+                            self.entry_ip.insert(0, ip)
+                        if not self.entry_port.get().strip():
+                            self.entry_port.insert(0, port)
+                    except Exception:
+                        pass
+
                 if self.dex_process is None:
                     self.btn_launch.configure(state="normal", text="Start DeX", fg_color=["#3B8ED0", "#1F6AA5"])
             else:
@@ -668,6 +725,9 @@ class DeXtopModeApp(ctk.CTk):
         self.config["fix_oneui_gestures"] = self.switch_fix_gestures.get() == 1
         self.config["mouse_uhid"] = self.switch_mouse.get() == 1
         self.config["keyboard_uhid"] = self.switch_keyboard.get() == 1
+        self.config["display_mode"] = self.opt_display_mode.get()
+        raw_dpi = self.opt_dpi.get()
+        self.config["display_dpi"] = raw_dpi.split()[0] if raw_dpi else "160"
         self.save_config()
 
     def repair_gestures_adb(self, device=None):
@@ -675,17 +735,19 @@ class DeXtopModeApp(ctk.CTk):
         if not target_device:
             return False, "No device connected."
         try:
-            # 1. Wake screen if off
+            # 1. Reset force_desktop_mode setting to 0 (crucial: exits external display mode lock)
+            subprocess.run(["adb", "-s", target_device, "shell", "settings", "put", "global", "force_desktop_mode_on_external_displays", "0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            # 2. Stop Samsung DeX desktop mode service if active
+            subprocess.run(["adb", "-s", target_device, "shell", "am", "stop-service", "-a", "com.sec.android.desktopmode.action.STOP_DESKTOP_MODE"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            
+            # 3. Wake screen if off
             subprocess.run(["adb", "-s", target_device, "shell", "input", "keyevent", "KEYCODE_WAKEUP"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
-            # 2. Force-stop Samsung One UI Home launcher (restarts launcher & rebinds gesture navigation in < 1s)
+            # 4. Force-stop Samsung One UI Home launcher (restarts launcher & rebinds gesture navigation in < 1s)
             subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.sec.android.app.launcher"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            # 3. Force-stop generic/Motorola/Pixel launchers if present
-            subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.motorola.launcher3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.google.android.apps.nexuslauncher"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-            # 4. Re-enforce gesture navigation mode
+            # 5. Re-enforce gesture navigation mode
             subprocess.run(["adb", "-s", target_device, "shell", "settings", "put", "secure", "navigation_mode", "2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
             return True, "One UI Launcher and gesture navigation successfully restarted!"
@@ -753,6 +815,9 @@ class DeXtopModeApp(ctk.CTk):
                 self.after(0, self.withdraw)
 
                 # 3. Launch Scrcpy
+                display_mode = self.config.get("display_mode", "Secondary Display (DeX)")
+                dpi = self.config.get("display_dpi", "160")
+
                 # Build arguments based on user config
                 cmd = [
                     "systemd-inhibit", 
@@ -761,12 +826,14 @@ class DeXtopModeApp(ctk.CTk):
                     "--why=Using desktop mode", 
                     "scrcpy", 
                     "-s", device, 
-                    "--new-display=1920x1080", 
                     "--turn-screen-off", 
                     "--stay-awake", 
                     "--disable-screensaver",
                     "--audio-codec=aac"
                 ]
+
+                if display_mode == "Secondary Display (DeX)":
+                    cmd.append(f"--new-display=1920x1080/{dpi}")
 
                 # Check mouse capture option
                 if self.config.get("mouse_uhid", False):
