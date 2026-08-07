@@ -11,20 +11,24 @@ It utilizes the powerful and fast engine of [scrcpy](https://github.com/Genymobi
 * **Modern Control Center (GUI)**: A beautiful CustomTkinter desktop interface in dark mode. No terminal command writing required!
 * **Automated Wireless Debugging (ADB Over Wi-Fi)**:
   * Integrated **Wireless Pairing (Association)** dialog with step-by-step guidance.
-  * Direct one-click Wi-Fi connection.
+  * Direct one-click Wi-Fi connection with smart IP & Port auto-filling.
+* **Display Modes & Custom DPI Scaling**:
+  * Easily toggle between **Secondary Display (DeX Mode)** and **Main Display Mirroring**.
+  * Customizable desktop display density (160 DPI standard desktop, 200 DPI, 240 DPI).
 * **Smart Audio Redirection**: Select your preferred output device (e.g. Bluetooth headphones, HDMI, internal PC speakers) dynamically from a dropdown menu using WirePlumber/PipeWire.
 * **Intelligent Power Management (Anti-Veille)**:
   * Temporarily disables the smartphone's screen timeout (`screen_off_timeout`) while DeXtop Mode is running, and restores it automatically when closed.
   * Keeps your computer from sleeping during usage via `systemd-inhibit`.
   * Turns off the physical smartphone screen to save battery and avoid screen burn-in.
+* **Automatic & Manual One UI Gesture Repair**:
+  * Automatically refreshes and restarts the One UI Home launcher (`com.sec.android.app.launcher`) upon disconnecting to prevent back gesture freezes on Samsung smartphones.
+  * Prominent **"Repair Phone Gestures (One UI)"** button available on both the Connection and Settings tabs for 1-click manual repair anytime.
 * **Mouse & Keyboard Lock (UHID)**:
   * Optional relative mouse capturing (UHID) for high precision control, customizable directly in the Settings tab (press `LAlt` or `Super` to release).
-* **Automatic One UI Gesture Repair**:
-  * Automatically refreshes and restarts the One UI Home launcher (`com.sec.android.app.launcher`) upon disconnecting to prevent back gesture freezes on Samsung smartphones.
-  * Includes a manual "Repair One UI Gestures Now" button in Settings.
-* **Stealth & Clean Integration**:
-  * Hides background `scrcpy` icons from the Linux applications menu.
-  * Automatically hides the DeXtop Mode window during the DeX session to keep your desk clutter-free.
+* **Stealth & Native Taskbar Integration**:
+  * Includes `StartupWMClass` matching so the custom icon appears natively in your Linux taskbar / dock while running.
+  * Hides background `scrcpy` menu icons to keep your desktop applications clutter-free.
+  * Automatically hides the DeXtop Mode window during the DeX session.
 
 ---
 
