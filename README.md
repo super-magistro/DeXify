@@ -19,6 +19,9 @@ It utilizes the powerful and fast engine of [scrcpy](https://github.com/Genymobi
   * Turns off the physical smartphone screen to save battery and avoid screen burn-in.
 * **Mouse & Keyboard Lock (UHID)**:
   * Optional relative mouse capturing (UHID) for high precision control, customizable directly in the Settings tab (press `LAlt` or `Super` to release).
+* **Automatic One UI Gesture Repair**:
+  * Automatically refreshes and restarts the One UI Home launcher (`com.sec.android.app.launcher`) upon disconnecting to prevent back gesture freezes on Samsung smartphones.
+  * Includes a manual "Repair One UI Gestures Now" button in Settings.
 * **Stealth & Clean Integration**:
   * Hides background `scrcpy` icons from the Linux applications menu.
   * Automatically hides the DeXtop Mode window during the DeX session to keep your desk clutter-free.

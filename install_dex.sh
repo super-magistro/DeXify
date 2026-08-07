@@ -114,6 +114,7 @@ Icon=$HOME/.config/dextop/icon.png
 Terminal=false
 Type=Application
 Categories=Utility;
+StartupWMClass=dextop
 EOF
     update-desktop-database "$HOME/.local/share/applications/" > /dev/null 2>&1
 ) & spinner $!

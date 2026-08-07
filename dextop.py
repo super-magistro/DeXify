@@ -155,7 +155,7 @@ class PairingDialog(ctk.CTkToplevel):
 
 class DeXtopModeApp(ctk.CTk):
     def __init__(self):
-        super().__init__()
+        super().__init__(className="dextop")
         
         self.title("DeXtop Mode")
         self.geometry("640x550")
@@ -206,7 +206,8 @@ class DeXtopModeApp(ctk.CTk):
             "timeout_handling": True,
             "selected_sink": "",
             "mouse_uhid": False,
-            "keyboard_uhid": False
+            "keyboard_uhid": False,
+            "fix_oneui_gestures": True
         }
         
     def save_config(self):
@@ -387,6 +388,18 @@ class DeXtopModeApp(ctk.CTk):
         else:
             self.switch_timeout.deselect()
         self.switch_timeout.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+        # One UI gesture repair switch
+        self.switch_fix_gestures = ctk.CTkSwitch(
+            self.tab_settings,
+            text="Auto-restart One UI Launcher on exit (Fixes Back gesture)",
+            command=self.on_settings_changed
+        )
+        if self.config.get("fix_oneui_gestures", True):
+            self.switch_fix_gestures.select()
+        else:
+            self.switch_fix_gestures.deselect()
+        self.switch_fix_gestures.grid(row=1, column=0, padx=10, pady=10, sticky="w")
         
         # Mouse lock (UHID) switch
         self.switch_mouse = ctk.CTkSwitch(
@@ -398,7 +411,7 @@ class DeXtopModeApp(ctk.CTk):
             self.switch_mouse.select()
         else:
             self.switch_mouse.deselect()
-        self.switch_mouse.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        self.switch_mouse.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         # Keyboard lock (UHID) switch
         self.switch_keyboard = ctk.CTkSwitch(
@@ -410,7 +423,17 @@ class DeXtopModeApp(ctk.CTk):
             self.switch_keyboard.select()
         else:
             self.switch_keyboard.deselect()
-        self.switch_keyboard.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        self.switch_keyboard.grid(row=3, column=0, padx=10, pady=10, sticky="w")
+
+        # Manual One UI repair button
+        self.btn_repair_gestures = ctk.CTkButton(
+            self.tab_settings,
+            text="🔄 Repair One UI Gestures Now",
+            command=self.manual_repair_gestures,
+            fg_color="#1a4f7a",
+            hover_color="#246a9f"
+        )
+        self.btn_repair_gestures.grid(row=4, column=0, padx=10, pady=15, sticky="w")
 
         # Info note about UHID mode release keys
         uhid_info = (
@@ -426,7 +449,7 @@ class DeXtopModeApp(ctk.CTk):
             justify="left",
             wraplength=520
         )
-        uhid_lbl.grid(row=3, column=0, padx=10, pady=15, sticky="w")
+        uhid_lbl.grid(row=5, column=0, padx=10, pady=10, sticky="w")
 
         # Info note about hidden scrcpy shortcut
         info_lbl = ctk.CTkLabel(
@@ -437,7 +460,7 @@ class DeXtopModeApp(ctk.CTk):
             justify="left",
             wraplength=500
         )
-        info_lbl.grid(row=4, column=0, padx=10, pady=(15, 0), sticky="w")
+        info_lbl.grid(row=6, column=0, padx=10, pady=(10, 0), sticky="w")
 
     # --- DEVICE MONITORING & CONNECTION ---
     def monitor_devices(self):
@@ -642,9 +665,42 @@ class DeXtopModeApp(ctk.CTk):
     # --- SETTINGS ---
     def on_settings_changed(self):
         self.config["timeout_handling"] = self.switch_timeout.get() == 1
+        self.config["fix_oneui_gestures"] = self.switch_fix_gestures.get() == 1
         self.config["mouse_uhid"] = self.switch_mouse.get() == 1
         self.config["keyboard_uhid"] = self.switch_keyboard.get() == 1
         self.save_config()
+
+    def repair_gestures_adb(self, device=None):
+        target_device = device or self.connected_device
+        if not target_device:
+            return False, "No device connected."
+        try:
+            # 1. Wake screen if off
+            subprocess.run(["adb", "-s", target_device, "shell", "input", "keyevent", "KEYCODE_WAKEUP"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            
+            # 2. Force-stop Samsung One UI Home launcher (restarts launcher & rebinds gesture navigation in < 1s)
+            subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.sec.android.app.launcher"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            # 3. Force-stop generic/Motorola/Pixel launchers if present
+            subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.motorola.launcher3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.google.android.apps.nexuslauncher"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            # 4. Re-enforce gesture navigation mode
+            subprocess.run(["adb", "-s", target_device, "shell", "settings", "put", "secure", "navigation_mode", "2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            
+            return True, "One UI Launcher and gesture navigation successfully restarted!"
+        except Exception as e:
+            return False, f"Failed to repair gestures: {str(e)}"
+
+    def manual_repair_gestures(self):
+        if not self.connected_device:
+            messagebox.showwarning("No Device", "Please connect a device first.")
+            return
+        success, msg = self.repair_gestures_adb()
+        if success:
+            messagebox.showinfo("Gestures Repaired", f"Success:\n{msg}")
+        else:
+            messagebox.showerror("Repair Failed", f"Error:\n{msg}")
 
     # --- DEX LIFECYCLE MANAGEMENT ---
     def toggle_dex(self):
@@ -753,6 +809,13 @@ class DeXtopModeApp(ctk.CTk):
                     except Exception as e:
                         print(f"Could not restore timeout: {e}")
                 self.old_timeout = None
+
+                # Auto-repair One UI gesture navigation on exit
+                if self.config.get("fix_oneui_gestures", True) and device:
+                    try:
+                        self.repair_gestures_adb(device)
+                    except Exception as e:
+                        print(f"Could not repair gestures: {e}")
                 
                 # Restore DeXtop Mode window and reset launch button state
                 self.after(0, self.deiconify)
