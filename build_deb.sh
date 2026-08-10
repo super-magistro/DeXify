@@ -31,7 +31,7 @@ Depends: scrcpy, adb, python3 (>= 3.8), python3-pil, python3-pil.imagetk, python
 Section: utils
 Priority: optional
 Homepage: https://github.com/super-magistro/DeXtop-mode
-Description: Samsung DeX & Android Desktop Mode GUI wrapper for Linux, macOS & Windows
+Description: DeXtop Mode: Samsung DeX & Android Desktop Mode on Linux, macOS & Windows
  DeXtop Mode is a modern Python GUI wrapper using scrcpy to launch
  virtual second screens displaying Android desktop mode (Samsung DeX, Motorola
  Ready For, Android 15 Desktop Mode) on Linux, macOS, and Windows.
