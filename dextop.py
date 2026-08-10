@@ -1052,23 +1052,59 @@ class DeXtopModeApp(ctk.CTk):
 def main():
     if len(sys.argv) > 1 and sys.argv[1] in ("--uninstall", "-u", "uninstall"):
         print("Uninstalling DeXtop Mode user shortcuts & config...")
-        shortcut_path = os.path.expanduser("~/.local/share/applications/dextop.desktop")
-        if os.path.exists(shortcut_path):
-            try:
-                os.remove(shortcut_path)
-                print(f"Removed {shortcut_path}")
-            except Exception as e:
-                print(f"Could not remove {shortcut_path}: {e}")
-        config_dir = os.path.expanduser("~/.config/dextop")
+
+        # --- Linux: remove .desktop shortcut ---
+        if sys.platform.startswith("linux"):
+            shortcut_path = os.path.expanduser("~/.local/share/applications/dextop.desktop")
+            if os.path.exists(shortcut_path):
+                try:
+                    os.remove(shortcut_path)
+                    print(f"Removed {shortcut_path}")
+                except Exception as e:
+                    print(f"Could not remove {shortcut_path}: {e}")
+            if shutil.which("update-desktop-database"):
+                subprocess.run(
+                    ["update-desktop-database", os.path.expanduser("~/.local/share/applications/")],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+
+        # --- macOS: remove app bundle from /Applications if present ---
+        elif sys.platform == "darwin":
+            app_path = "/Applications/dextop-mode.app"
+            if os.path.exists(app_path):
+                try:
+                    shutil.rmtree(app_path)
+                    print(f"Removed {app_path}")
+                except Exception as e:
+                    print(f"Could not remove {app_path}: {e}\nTry: sudo rm -rf /Applications/dextop-mode.app")
+            else:
+                print("No system app bundle found in /Applications (was it installed via pipx/pip?).")
+
+        # --- Windows: remove Start Menu shortcut if present ---
+        elif sys.platform.startswith("win"):
+            start_menu = os.path.join(
+                os.environ.get("APPDATA", ""),
+                "Microsoft", "Windows", "Start Menu", "Programs", "dextop-mode.lnk"
+            )
+            if os.path.exists(start_menu):
+                try:
+                    os.remove(start_menu)
+                    print(f"Removed {start_menu}")
+                except Exception as e:
+                    print(f"Could not remove {start_menu}: {e}")
+            else:
+                print("No Start Menu shortcut found.")
+
+        # --- All platforms: remove config directory ---
+        config_dir = CONFIG_DIR
         if os.path.exists(config_dir):
             try:
                 shutil.rmtree(config_dir)
-                print(f"Removed {config_dir}")
+                print(f"Removed config directory: {config_dir}")
             except Exception as e:
                 print(f"Could not remove {config_dir}: {e}")
-        if shutil.which("update-desktop-database"):
-            subprocess.run(["update-desktop-database", os.path.expanduser("~/.local/share/applications/")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("DeXtop Mode shortcut and configuration cleaned up successfully.")
+
+        print("DeXtop Mode cleanup completed successfully.")
         return
 
     app = DeXtopModeApp()

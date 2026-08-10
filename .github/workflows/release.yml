@@ -83,10 +83,23 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel pyinstaller
           python -m pip install customtkinter pillow
 
-      - name: Generate Icon & Build macOS App Bundle (.dmg)
+      - name: Generate .icns Icon & Build macOS App Bundle (.dmg)
         run: |
+          # Generate the base PNG icon
           python -c "import dextop; dextop.ensure_app_icon()" || true
-          python -m PyInstaller --noconfirm --onedir --windowed --name "dextop-mode" dextop.py
+          ICON_PNG="$HOME/.config/dextop/icon.png"
+
+          # Convert PNG → .icns using macOS native tools (sips + iconutil)
+          mkdir -p dextop.iconset
+          for SIZE in 16 32 64 128 256 512; do
+            sips -z $SIZE $SIZE "$ICON_PNG" --out "dextop.iconset/icon_${SIZE}x${SIZE}.png" > /dev/null
+          done
+          iconutil -c icns dextop.iconset -o dextop.icns
+
+          # Build the .app bundle with the native .icns icon
+          python -m PyInstaller --noconfirm --onedir --windowed --icon dextop.icns --name "dextop-mode" dextop.py
+
+          # Package into a .dmg disk image
           hdiutil create -volname "DeXtop Mode" -srcfolder "dist/dextop-mode.app" -ov -format UDZO "dist/dextop-mode_macOS.dmg"
 
       - name: Upload macOS DMG to GitHub Release
@@ -115,10 +128,22 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel pyinstaller
           python -m pip install customtkinter pillow
 
-      - name: Build Windows Executable with PyInstaller
+      - name: Generate .ico Icon & Build Windows Executable
         run: |
-          python -c "import dextop; dextop.ensure_app_icon()"
-          python -m PyInstaller --noconfirm --onefile --windowed --name "dextop-mode_windows_x64" dextop.py
+          # Generate the base PNG icon and convert to .ico using Pillow
+          python -c "
+import os, sys
+sys.path.insert(0, '.')
+import dextop
+dextop.ensure_app_icon()
+icon_png = os.path.expanduser('~/.config/dextop/icon.png')
+from PIL import Image
+img = Image.open(icon_png).convert('RGBA')
+img.save('icon.ico', format='ICO', sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
+print('icon.ico generated successfully')
+"
+          # Build the standalone .exe with the native .ico icon
+          python -m PyInstaller --noconfirm --onefile --windowed --icon icon.ico --name "dextop-mode_windows_x64" dextop.py
 
       - name: Upload Windows Executable to GitHub Release
         uses: softprops/action-gh-release@v2

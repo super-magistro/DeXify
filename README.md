@@ -1,5 +1,11 @@
 # DeXtop Mode: Samsung DeX & Android Desktop Mode on Linux, macOS & Windows
 
+[![PyPI version](https://img.shields.io/pypi/v/dextop-mode.svg?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/dextop-mode/)
+[![GitHub release](https://img.shields.io/github/v/release/super-magistro/DeXtop-mode?logo=github)](https://github.com/super-magistro/DeXtop-mode/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/super-magistro/DeXtop-mode/blob/main/LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-informational)](https://github.com/super-magistro/DeXtop-mode/releases)
+[![Python](https://img.shields.io/badge/python-3.8%2B-blue?logo=python&logoColor=white)](https://pypi.org/project/dextop-mode/)
+
 **DeXtop Mode** is a modern, cross-platform Python GUI wrapper that launches a virtual second screen displaying your Android smartphone's desktop mode (Samsung DeX, Motorola Ready For, native Android AOSP Desktop Mode, etc.) on **Linux** (Ubuntu, Debian, Mint, Pop!_OS, Zorin OS), **macOS** (Intel & Apple Silicon M1-M4), and **Windows** (10/11).
 
 It utilizes the powerful engine of [scrcpy](https://github.com/Genymobile/scrcpy) in the background to handle control and high-performance video/audio streaming.
