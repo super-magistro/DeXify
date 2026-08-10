@@ -128,7 +128,18 @@ jobs:
         run: python generate_icon.py --ico
 
       - name: Build Windows Executable (.exe)
-        run: python -m PyInstaller --noconfirm --onefile --windowed --icon icon.ico --name "dextop-mode_windows_x64" dextop.py
+        run: |
+          python -m PyInstaller `
+            --noconfirm `
+            --onefile `
+            --windowed `
+            --icon icon.ico `
+            --name "dextop-mode_windows_x64" `
+            --collect-all customtkinter `
+            --collect-all darkdetect `
+            --hidden-import PIL `
+            --hidden-import PIL._imagingtk `
+            dextop.py
 
       - name: Upload Windows Executable to GitHub Release
         uses: softprops/action-gh-release@v2
