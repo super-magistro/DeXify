@@ -886,13 +886,10 @@ class DeXtopModeApp(ctk.CTk):
             # 3. Wake screen if off
             subprocess.run(["adb", "-s", target_device, "shell", "input", "keyevent", "KEYCODE_WAKEUP"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
-            # 4. Force-stop Samsung One UI Home launcher (restarts launcher & rebinds gesture navigation in < 1s)
+            # 4. Force-stop Samsung One UI Home launcher (restarts launcher & rebinds navigation in < 1s)
             subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.sec.android.app.launcher"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-            # 5. Re-enforce gesture navigation mode
-            subprocess.run(["adb", "-s", target_device, "shell", "settings", "put", "secure", "navigation_mode", "2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
-            return True, "One UI Launcher and gesture navigation successfully restarted!"
+            return True, "One UI Launcher successfully restarted!"
         except Exception as e:
             return False, f"Failed to repair gestures: {str(e)}"
 
@@ -1020,8 +1017,8 @@ class DeXtopModeApp(ctk.CTk):
                         print(f"Could not restore timeout: {e}")
                 self.old_timeout = None
 
-                # Auto-repair One UI gesture navigation on exit
-                if self.config.get("fix_oneui_gestures", True) and device:
+                # Auto-repair One UI gesture navigation on exit (only in Secondary Display DeX mode)
+                if display_mode == "Secondary Display (DeX)" and self.config.get("fix_oneui_gestures", True) and device:
                     try:
                         self.repair_gestures_adb(device)
                     except Exception as e:
