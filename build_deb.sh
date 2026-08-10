@@ -27,10 +27,10 @@ Package: dextop-mode
 Version: ${VERSION}
 Architecture: all
 Maintainer: Romain Guillon <super-magistro>
-Depends: scrcpy, adb, python3 (>= 3.8), python3-customtkinter, python3-pil, python3-tk, ffmpeg
+Depends: scrcpy, adb, python3 (>= 3.8), python3-pil, python3-tk, ffmpeg
 Section: utils
 Priority: optional
-Homepage: https://github.com/super-magistro/DeXify
+Homepage: https://github.com/super-magistro/DeXtop-mode
 Description: Samsung DeX & Android Desktop Mode GUI wrapper for Linux
  DeXtop Mode (DeXify) is a modern Python GUI wrapper using scrcpy to launch
  virtual second screens displaying Android desktop mode (Samsung DeX, Motorola
@@ -53,9 +53,20 @@ exit 0
 EOF
 chmod 755 "$BUILD_DIR/DEBIAN/postinst"
 
-# 3. Copy python code
+# 3. Copy python code & bundle customtkinter for a self-contained package
 cp dextop.py "$BUILD_DIR/usr/lib/python3/dist-packages/"
 chmod 644 "$BUILD_DIR/usr/lib/python3/dist-packages/dextop.py"
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CTK_SRC=""
+if [ -d "$DIR/venv/lib" ]; then
+    CTK_SRC=$(find "$DIR/venv/lib" -type d -name "customtkinter" | head -n 1)
+fi
+if [ -n "$CTK_SRC" ] && [ -d "$CTK_SRC" ]; then
+    cp -r "$CTK_SRC" "$BUILD_DIR/usr/lib/python3/dist-packages/"
+else
+    python3 -m pip install customtkinter --target="$BUILD_DIR/usr/lib/python3/dist-packages/" --no-deps >/dev/null 2>&1 || true
+fi
 
 # 4. Generate icon and place it in hicolor icons folder
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
