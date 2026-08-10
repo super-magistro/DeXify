@@ -20,6 +20,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Sync Version from Git Tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VER="${GITHUB_REF_NAME#v}"
+            echo "Setting package version to $VER"
+            sed -i "s/version = \".*\"/version = \"$VER\"/" pyproject.toml
+            sed -i "s/version=\".*\"/version=\"$VER\"/" setup.py
+            sed -i "s/VERSION=\".*\"/VERSION=\"$VER\"/" build_deb.sh
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="1.0.0"
+VERSION="1.0.10"
 BUILD_DIR="build_deb"
 PKG_NAME="dextop-mode_${VERSION}_all.deb"
 
