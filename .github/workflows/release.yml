@@ -76,9 +76,9 @@ jobs:
       - name: Generate Icon & Build macOS App Bundle
         run: |
           python -c "import dextop; dextop.ensure_app_icon()" || true
-          python -m PyInstaller --noconfirm --onedir --windowed --name "DeXtop Mode" dextop.py
+          python -m PyInstaller --noconfirm --onedir --windowed --name "dextop-mode" dextop.py
           cd dist
-          zip -r DeXtop_Mode_macOS.zip "DeXtop Mode.app"
+          zip -r dextop-mode_macOS.zip "dextop-mode.app"
 
       - name: Upload macOS Bundle to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -86,4 +86,4 @@ jobs:
         with:
           overwrite: true
           files: |
-            dist/DeXtop_Mode_macOS.zip
+            dist/dextop-mode_macOS.zip
