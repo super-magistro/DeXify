@@ -48,7 +48,7 @@ try:
 except ImportError:
     ImageTk = None
 
-__version__ = "1.0.21"
+__version__ = "1.0.22"
 
 # Set styling theme
 if sys.platform == "darwin":
@@ -317,9 +317,28 @@ def check_and_install_dependencies():
             f"The following required dependencies are missing: {missing_str}.\n\n"
             "Please install Homebrew (https://brew.sh) or run:\nbrew install scrcpy android-platform-tools"
         )
+    if sys.platform.startswith("linux"):
+        cmd = None
+        if shutil.which("pacman"):
+            cmd = ["pkexec", "pacman", "-S", "--noconfirm", "scrcpy", "android-tools"]
+        elif shutil.which("apt-get"):
+            cmd = ["pkexec", "apt", "install", "-y", "scrcpy", "adb"]
+        elif shutil.which("dnf"):
+            cmd = ["pkexec", "dnf", "install", "-y", "scrcpy", "android-tools"]
+            
+        if cmd and shutil.which("pkexec"):
+            return _offer_install(
+                cmd,
+                f"The following required dependencies are missing: {missing_str}.\n\n"
+                "Would you like DeXtop Mode to automatically install them now? (Requires administrator password)",
+                f"The following required dependencies are missing: {missing_str}.\n\n"
+                "Please install them via your system package manager."
+            )
+        else:
+            messagebox.showwarning("Missing Dependencies", f"The following required dependencies are missing: {missing_str}.\n\nPlease install 'scrcpy' and 'adb' via your package manager to use DeXtop Mode.")
+            return False
 
     return False
-
 
 class DeXtopModeApp(ctk.CTk):
     def __init__(self):
