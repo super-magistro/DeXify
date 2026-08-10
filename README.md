@@ -97,6 +97,18 @@ sudo apt install ./dextop-mode_1.0.0_all.deb
 
 ---
 
+### 🍏 Option 5: macOS Installation
+
+1. Install `scrcpy` & `adb` via Homebrew:
+```bash
+brew install scrcpy android-platform-tools
+```
+
+2. Download `DeXtop_Mode_macOS.zip` from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases), unzip, and launch **DeXtop Mode.app**!  
+*(Or install via terminal: `pipx install dextop-mode`)*
+
+---
+
 ## 💡 How to Use
 
 1. Ensure your phone and PC are on the same Wi-Fi network (or connected via USB).

@@ -759,6 +759,7 @@ class DeXtopModeApp(ctk.CTk):
             except Exception as e:
                 print(f"Error listing audio devices: {e}")
                 self.sinks_map = {}
+                self.after(0, lambda: (self.audio_dropdown.configure(values=["Default"]), self.audio_dropdown.set("Default")))
                 
         threading.Thread(target=run_refresh, daemon=True).start()
 

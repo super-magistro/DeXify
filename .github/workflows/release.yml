@@ -54,3 +54,36 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
         with:
           skip-existing: true
+
+  build-macos:
+    name: Build macOS App Bundle (.zip)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel pyinstaller
+          python -m pip install customtkinter pillow
+
+      - name: Generate Icon & Build macOS App Bundle
+        run: |
+          python -c "import dextop; dextop.ensure_app_icon()" || true
+          python -m PyInstaller --noconfirm --onedir --windowed --name "DeXtop Mode" dextop.py
+          cd dist
+          zip -r DeXtop_Mode_macOS.zip "DeXtop Mode.app"
+
+      - name: Upload macOS Bundle to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
+        with:
+          overwrite: true
+          files: |
+            dist/DeXtop_Mode_macOS.zip

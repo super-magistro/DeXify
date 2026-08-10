@@ -36,9 +36,10 @@ echo "=========================================="
 echo "          Uninstalling DeXtop Mode        "
 echo "=========================================="
 
-# --- STEP 1: REMOVE SHORTCUTS ---
-echo -n "[1/3] Removing desktop shortcuts & configs... "
+# --- STEP 1: REMOVE SHORTCUTS & DEBIAN PACKAGE ---
+echo -n "[1/3] Removing Debian package, shortcuts & configs... "
 (
+    sudo apt remove -y dextop-mode > /dev/null 2>&1 || true
     rm -f "$HOME/.local/share/applications/dextop.desktop"
     rm -f "$HOME/.local/share/applications/mode-dex.desktop"
     rm -f "$HOME/.local/share/applications/scrcpy.desktop"
