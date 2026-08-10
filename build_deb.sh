@@ -2,7 +2,7 @@
 set -e
 
 if [ -f "dextop.py" ]; then
-    VERSION=$(grep '__version__' dextop.py | cut -d'"' -f2)
+    VERSION=$(grep '^__version__' dextop.py | cut -d'"' -f2)
 else
     VERSION="1.0.20"
 fi
