@@ -61,13 +61,17 @@ def ensure_app_icon():
         img = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
         
         # 1. Background with a beautiful dark slate-to-purple diagonal gradient
+        # Using pixels.load() is significantly faster than putpixel() in a loop
+        pixels = img.load()
         for y in range(512):
             for x in range(512):
                 ratio = (x + y) / 1024.0
-                r = int(15 + (88 - 15) * ratio)
-                g = int(23 + (28 - 23) * ratio)
-                b = int(42 + (135 - 42) * ratio)
-                img.putpixel((x, y), (r, g, b, 255))
+                pixels[x, y] = (
+                    int(15 + 73 * ratio),
+                    int(23 + 5 * ratio),
+                    int(42 + 93 * ratio),
+                    255
+                )
                 
         # Apply smooth rounded corners mask
         mask = Image.new("L", (512, 512), 0)
@@ -224,6 +228,22 @@ class PairingDialog(ctk.CTkToplevel):
         threading.Thread(target=run_pair, daemon=True).start()
 
 
+def _offer_install(manager_cmd, install_prompt, no_manager_msg, success_msg="Dependencies installed successfully!"):
+    """Generic helper: proposes 1-click install via a package manager."""
+    if shutil.which(manager_cmd[0]):
+        if messagebox.askyesno("Missing Dependencies", install_prompt):
+            try:
+                subprocess.run(manager_cmd, check=True)
+                messagebox.showinfo("Success", success_msg)
+                return True
+            except Exception as e:
+                messagebox.showerror("Installation Error", f"Failed to install dependencies: {e}")
+                return False
+    else:
+        messagebox.showwarning("Missing Dependencies", no_manager_msg)
+    return False
+
+
 def check_and_install_dependencies():
     """Checks if scrcpy or adb is missing and offers 1-click auto-installation."""
     missing = []
@@ -231,57 +251,32 @@ def check_and_install_dependencies():
         missing.append("scrcpy")
     if not shutil.which("adb") and not shutil.which("adb.exe"):
         missing.append("adb")
-        
+
     if not missing:
         return True
-        
+
     missing_str = ", ".join(missing)
+
     if sys.platform.startswith("win"):
-        has_winget = shutil.which("winget") is not None
-        if has_winget:
-            ans = messagebox.askyesno(
-                "Missing Dependencies",
-                f"The following required dependencies are missing: {missing_str}.\n\n"
-                "Would you like DeXtop Mode to automatically install scrcpy via Winget now?"
-            )
-            if ans:
-                try:
-                    subprocess.run(["winget", "install", "Genymobile.scrcpy", "--accept-source-agreements", "--accept-package-agreements"], check=True)
-                    messagebox.showinfo("Success", "Dependencies installed successfully! Please restart DeXtop Mode.")
-                    return True
-                except Exception as e:
-                    messagebox.showerror("Installation Error", f"Failed to install dependencies: {e}")
-                    return False
-        else:
-            messagebox.showwarning(
-                "Missing Dependencies",
-                f"The following required dependencies are missing: {missing_str}.\n\n"
-                "Please install scrcpy from https://github.com/Genymobile/scrcpy or via Chocolatey / Scoop."
-            )
-            return False
-    elif sys.platform == "darwin":
-        has_brew = shutil.which("brew") is not None
-        if has_brew:
-            ans = messagebox.askyesno(
-                "Missing Dependencies",
-                f"The following required dependencies are missing: {missing_str}.\n\n"
-                "Would you like DeXtop Mode to automatically install them via Homebrew now?"
-            )
-            if ans:
-                try:
-                    subprocess.run(["brew", "install", "scrcpy", "android-platform-tools"], check=True)
-                    messagebox.showinfo("Success", "Dependencies installed successfully!")
-                    return True
-                except Exception as e:
-                    messagebox.showerror("Installation Error", f"Failed to install dependencies: {e}")
-                    return False
-        else:
-            messagebox.showwarning(
-                "Missing Dependencies",
-                f"The following required dependencies are missing: {missing_str}.\n\n"
-                "Please install Homebrew (https://brew.sh) or run:\nbrew install scrcpy android-platform-tools"
-            )
-            return False
+        return _offer_install(
+            ["winget", "install", "Genymobile.scrcpy",
+             "--accept-source-agreements", "--accept-package-agreements"],
+            f"The following required dependencies are missing: {missing_str}.\n\n"
+            "Would you like DeXtop Mode to automatically install scrcpy via Winget now?",
+            f"The following required dependencies are missing: {missing_str}.\n\n"
+            "Please install scrcpy from https://github.com/Genymobile/scrcpy or via Chocolatey / Scoop.",
+            "Dependencies installed successfully! Please restart DeXtop Mode."
+        )
+
+    if sys.platform == "darwin":
+        return _offer_install(
+            ["brew", "install", "scrcpy", "android-platform-tools"],
+            f"The following required dependencies are missing: {missing_str}.\n\n"
+            "Would you like DeXtop Mode to automatically install them via Homebrew now?",
+            f"The following required dependencies are missing: {missing_str}.\n\n"
+            "Please install Homebrew (https://brew.sh) or run:\nbrew install scrcpy android-platform-tools"
+        )
+
     return False
 
 
@@ -298,6 +293,7 @@ class DeXtopModeApp(ctk.CTk):
         self.dex_process = None
         self.old_timeout = None
         self.is_connecting = False
+        self.sinks_map = {}  # Initialized early to avoid AttributeError before refresh completes
         
         # Check dependencies on launch
         check_and_install_dependencies()
@@ -802,6 +798,15 @@ class DeXtopModeApp(ctk.CTk):
 
     # --- AUDIO MANAGEMENT ---
     def refresh_audio_devices(self):
+        # wpctl / PipeWire is Linux-only; skip silently on macOS and Windows
+        if not sys.platform.startswith("linux"):
+            self.sinks_map = {}
+            self.after(0, lambda: (
+                self.audio_dropdown.configure(values=["Default (system)"]),
+                self.audio_dropdown.set("Default (system)")
+            ))
+            return
+
         def run_refresh():
             try:
                 output = subprocess.check_output(["wpctl", "status"]).decode("utf-8")
@@ -846,10 +851,10 @@ class DeXtopModeApp(ctk.CTk):
         threading.Thread(target=run_refresh, daemon=True).start()
 
     def on_audio_selected(self, choice):
-        self.config["selected_sink"] = choice if choice != "Default" else ""
+        self.config["selected_sink"] = choice if choice not in ("Default", "Default (system)") else ""
         self.save_config()
-        # If user changed it and DeX is running, apply immediately
-        if choice != "Default" and choice in self.sinks_map:
+        # Apply immediately via wpctl on Linux only
+        if sys.platform.startswith("linux") and choice not in ("Default", "Default (system)") and choice in self.sinks_map:
             sink_id = self.sinks_map[choice]
             try:
                 subprocess.run(["wpctl", "set-default", str(sink_id)])
@@ -919,8 +924,8 @@ class DeXtopModeApp(ctk.CTk):
         handle_timeout = self.config.get("timeout_handling", True)
         selected_audio = self.audio_dropdown.get()
         
-        # Audio redirect if selected
-        if selected_audio != "Default" and selected_audio in self.sinks_map:
+        # Audio redirect via wpctl (Linux / PipeWire only)
+        if sys.platform.startswith("linux") and selected_audio not in ("Default", "Default (system)") and selected_audio in self.sinks_map:
             sink_id = self.sinks_map[selected_audio]
             try:
                 subprocess.run(["wpctl", "set-default", str(sink_id)])
