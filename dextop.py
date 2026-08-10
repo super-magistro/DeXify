@@ -7,16 +7,48 @@ import subprocess
 import shutil
 import threading
 import time
-import tkinter as tk
-import customtkinter as ctk
-from tkinter import messagebox
+try:
+    import tkinter as tk
+    import customtkinter as ctk
+    from tkinter import messagebox
+except ImportError as e:
+    import subprocess
+    print(f"❌ Error loading GUI libraries: {e}")
+    print("\nIt looks like 'tkinter' is missing on your system.")
+    
+    pkg_manager = ""
+    install_cmd = []
+    if shutil.which("pacman"):
+        pkg_manager = "pacman (Arch Linux)"
+        install_cmd = ["sudo", "pacman", "-S", "--noconfirm", "tk"]
+    elif shutil.which("apt-get"):
+        pkg_manager = "apt (Debian/Ubuntu)"
+        install_cmd = ["sudo", "apt", "install", "-y", "python3-tk"]
+    elif shutil.which("dnf"):
+        pkg_manager = "dnf (Fedora)"
+        install_cmd = ["sudo", "dnf", "install", "-y", "python3-tkinter"]
+        
+    if install_cmd and sys.stdin and sys.stdin.isatty():
+        try:
+            ans = input(f"\nWould you like to automatically install the missing package via {pkg_manager}? [Y/n] ")
+            if ans.lower() in ["", "y", "yes"]:
+                print(f"Running: {' '.join(install_cmd)}")
+                subprocess.run(install_cmd)
+                print("\nInstallation finished! Please restart DeXtop Mode.")
+            else:
+                print("Please install it manually to use DeXtop Mode.")
+        except EOFError:
+            print("Please install your system's tkinter package manually to use DeXtop Mode.")
+    else:
+        print("Please install your system's tkinter package manually to use DeXtop Mode.")
+    sys.exit(1)
 from PIL import Image, ImageDraw
 try:
     from PIL import ImageTk
 except ImportError:
     ImageTk = None
 
-__version__ = "1.0.20"
+__version__ = "1.0.21"
 
 # Set styling theme
 if sys.platform == "darwin":
@@ -107,14 +139,21 @@ def ensure_desktop_shortcut():
     shortcut_path = os.path.join(user_apps_dir, "dextop.desktop")
     system_shortcut = "/usr/share/applications/dextop.desktop"
     
-    if os.path.exists(shortcut_path) or os.path.exists(system_shortcut):
-        return
-        
     try:
         os.makedirs(user_apps_dir, exist_ok=True)
         ensure_app_icon()
         icon_path = get_app_icon_path() or ICON_FILE
         
+        # Hide default scrcpy icons from the user's application menu
+        for scrcpy_name in ["scrcpy.desktop", "scrcpy-console.desktop"]:
+            scrcpy_shortcut = os.path.join(user_apps_dir, scrcpy_name)
+            if not os.path.exists(scrcpy_shortcut):
+                with open(scrcpy_shortcut, "w") as f:
+                    f.write(f"[Desktop Entry]\nType=Application\nName={scrcpy_name.replace('.desktop', '')}\nNoDisplay=true\n")
+                    
+        if os.path.exists(shortcut_path) or os.path.exists(system_shortcut):
+            return
+            
         exec_cmd = "dextop"
         if not shutil.which("dextop"):
             exec_cmd = f"{sys.executable} {os.path.abspath(__file__)}"

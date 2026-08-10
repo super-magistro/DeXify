@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dextop-mode"
-version = "1.0.20"
+version = "1.0.21"
 description = "DeXtop Mode: Samsung DeX & Android Desktop Mode on Linux, macOS & Windows"
 readme = "README.md"
 authors = [
@@ -13,10 +13,16 @@ authors = [
 license = { text = "MIT" }
 classifiers = [
     "Development Status :: 5 - Production/Stable",
+    "Environment :: MacOS X",
+    "Environment :: Win32 (MS Windows)",
     "Environment :: X11 Applications",
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
