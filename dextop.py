@@ -9,7 +9,11 @@ import time
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image, ImageDraw
+try:
+    from PIL import ImageTk
+except ImportError:
+    ImageTk = None
 
 # Set styling theme
 ctk.set_appearance_mode("dark")
@@ -18,6 +22,17 @@ ctk.set_default_color_theme("blue")
 CONFIG_DIR = os.path.expanduser("~/.config/dextop")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 ICON_FILE = os.path.join(CONFIG_DIR, "icon.png")
+SYSTEM_ICON_FILE = "/usr/share/icons/hicolor/512x512/apps/dextop.png"
+
+def get_app_icon_path():
+    if os.path.exists(ICON_FILE):
+        return ICON_FILE
+    if os.path.exists(SYSTEM_ICON_FILE):
+        return SYSTEM_ICON_FILE
+    ensure_app_icon()
+    if os.path.exists(ICON_FILE):
+        return ICON_FILE
+    return None
 
 def ensure_app_icon():
     """Generates a premium custom icon for DeXtop Mode if it doesn't exist."""
@@ -170,13 +185,11 @@ class DeXtopModeApp(ctk.CTk):
         # Load config
         self.config = self.load_config()
         
-        # Generate icon if missing
-        ensure_app_icon()
-        
         # Set window and taskbar icon
-        if os.path.exists(ICON_FILE):
+        icon_path = get_app_icon_path()
+        if icon_path:
             try:
-                icon_img = ImageTk.PhotoImage(file=ICON_FILE)
+                icon_img = ImageTk.PhotoImage(file=icon_path)
                 self.wm_iconphoto(True, icon_img)
                 self._icon_img = icon_img
             except Exception as e:

@@ -27,7 +27,7 @@ Package: dextop-mode
 Version: ${VERSION}
 Architecture: all
 Maintainer: Romain Guillon <super-magistro>
-Depends: scrcpy, adb, python3 (>= 3.8), python3-pil, python3-tk, ffmpeg
+Depends: scrcpy, adb, python3 (>= 3.8), python3-pil, python3-pil.imagetk, python3-tk, ffmpeg
 Section: utils
 Priority: optional
 Homepage: https://github.com/super-magistro/DeXtop-mode
@@ -53,29 +53,58 @@ exit 0
 EOF
 chmod 755 "$BUILD_DIR/DEBIAN/postinst"
 
+# 2b. Create DEBIAN/postrm (Clean up desktop menu cache upon uninstallation)
+cat <<'EOF' > "$BUILD_DIR/DEBIAN/postrm"
+#!/bin/sh
+set -e
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    if [ -x "$(command -v update-desktop-database)" ]; then
+        update-desktop-database -q /usr/share/applications || true
+    fi
+    if [ -x "$(command -v gtk-update-icon-cache)" ]; then
+        gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor || true
+    fi
+fi
+
+exit 0
+EOF
+chmod 755 "$BUILD_DIR/DEBIAN/postrm"
+
 # 3. Copy python code & bundle customtkinter for a self-contained package
 cp dextop.py "$BUILD_DIR/usr/lib/python3/dist-packages/"
 chmod 644 "$BUILD_DIR/usr/lib/python3/dist-packages/dextop.py"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CTK_SRC=""
+DARK_SRC=""
 if [ -d "$DIR/venv/lib" ]; then
     CTK_SRC=$(find "$DIR/venv/lib" -type d -name "customtkinter" | head -n 1)
+    DARK_SRC=$(find "$DIR/venv/lib" -type d -name "darkdetect" | head -n 1)
 fi
 if [ -n "$CTK_SRC" ] && [ -d "$CTK_SRC" ]; then
     cp -r "$CTK_SRC" "$BUILD_DIR/usr/lib/python3/dist-packages/"
 else
     python3 -m pip install customtkinter --target="$BUILD_DIR/usr/lib/python3/dist-packages/" --no-deps >/dev/null 2>&1 || true
 fi
+if [ -n "$DARK_SRC" ] && [ -d "$DARK_SRC" ]; then
+    cp -r "$DARK_SRC" "$BUILD_DIR/usr/lib/python3/dist-packages/"
+else
+    python3 -m pip install darkdetect --target="$BUILD_DIR/usr/lib/python3/dist-packages/" --no-deps >/dev/null 2>&1 || true
+fi
 
-# 4. Generate icon and place it in hicolor icons folder
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# 4. Generate icon and place it in hicolor icons and pixmaps folders
+mkdir -p "$BUILD_DIR/usr/share/pixmaps"
 if [ -f "$DIR/venv/bin/python" ]; then
     "$DIR/venv/bin/python" -c "import sys; sys.path.append('$DIR'); import dextop; dextop.ensure_app_icon()" || true
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHONPATH="$BUILD_DIR/usr/lib/python3/dist-packages:$PYTHONPATH" python3 -c "import sys; sys.path.append('$DIR'); import dextop; dextop.ensure_app_icon()" || true
 fi
 if [ -f "$HOME/.config/dextop/icon.png" ]; then
     cp "$HOME/.config/dextop/icon.png" "$BUILD_DIR/usr/share/icons/hicolor/512x512/apps/dextop.png"
     chmod 644 "$BUILD_DIR/usr/share/icons/hicolor/512x512/apps/dextop.png"
+    cp "$HOME/.config/dextop/icon.png" "$BUILD_DIR/usr/share/pixmaps/dextop.png"
+    chmod 644 "$BUILD_DIR/usr/share/pixmaps/dextop.png"
 fi
 
 # 5. Create launcher script in /usr/bin/dextop
