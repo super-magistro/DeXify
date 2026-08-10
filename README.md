@@ -1,14 +1,14 @@
-# DeXtop Mode: Samsung DeX & Android Desktop Mode on Linux
+# DeXtop Mode: Samsung DeX & Android Desktop Mode on Linux & macOS
 
-**DeXtop Mode** is a modern and lightweight Python GUI wrapper that launches a virtual second screen displaying your Android smartphone's desktop mode (Samsung DeX, Motorola Ready For, native Android AOSP Desktop Mode, etc.) on Linux distributions (Ubuntu, Debian, Linux Mint, Zorin OS, etc.).
+**DeXtop Mode** is a modern, cross-platform Python GUI wrapper that launches a virtual second screen displaying your Android smartphone's desktop mode (Samsung DeX, Motorola Ready For, native Android AOSP Desktop Mode, etc.) on Linux distributions (Ubuntu, Debian, Linux Mint, Zorin OS, Pop!_OS) and macOS.
 
-It utilizes the powerful and fast engine of [scrcpy](https://github.com/Genymobile/scrcpy) in the background to handle control and video streaming.
+It utilizes the powerful engine of [scrcpy](https://github.com/Genymobile/scrcpy) in the background to handle control and high-performance video/audio streaming.
 
 ---
 
 ## 🚀 Key Features
 
-* **Modern Control Center (GUI)**: A beautiful CustomTkinter desktop interface in dark mode. No terminal command writing required!
+* **Modern Control Center (GUI)**: A beautiful CustomTkinter desktop interface in dark mode. No terminal commands required!
 * **Automated Wireless Debugging (ADB Over Wi-Fi)**:
   * Integrated **Wireless Pairing (Association)** dialog with step-by-step guidance.
   * Direct one-click Wi-Fi connection with smart IP & Port auto-filling.
@@ -25,10 +25,10 @@ It utilizes the powerful and fast engine of [scrcpy](https://github.com/Genymobi
   * Prominent **"Repair Phone Gestures (One UI)"** button available on both the Connection and Settings tabs for 1-click manual repair anytime.
 * **Mouse & Keyboard Lock (UHID)**:
   * Optional relative mouse capturing (UHID) for high precision control, customizable directly in the Settings tab (press `LAlt` or `Super` to release).
-* **Stealth & Native Taskbar Integration**:
-  * Includes `StartupWMClass` matching so the custom icon appears natively in your Linux taskbar / dock while running.
-  * Hides background `scrcpy` menu icons to keep your desktop applications clutter-free.
-  * Automatically hides the DeXtop Mode window during the DeX session.
+* **Cross-Platform Support (Linux & macOS)**:
+  * Native Debian package (`.deb`), macOS installer (`.dmg`), PyPI package (`pip install dextop-mode`), and `pipx` launcher.
+  * Automatic 1-click dependency installer (Homebrew) on macOS.
+  * Includes `StartupWMClass` matching so the custom icon appears natively in your taskbar / dock while running.
 
 ---
 
@@ -37,12 +37,13 @@ It utilizes the powerful and fast engine of [scrcpy](https://github.com/Genymobi
 1. **Compatible Smartphone**:
    * Samsung Galaxy S series (S8 to S26), Note series, or Z Fold.
    * Motorola Edge or Razr series.
-   * Any smartphone running Android 11+ (for wireless) or Android 15+ (for native desktop mode).
+   * Any smartphone running Android 11+ (for wireless debugging) or Android 15+ (for native desktop mode).
 2. **On your Phone**:
    * Enable **Developer Options** (Settings > About Phone, tap *Build Number* 7 times).
    * Turn on **USB Debugging** and **Wireless Debugging** in Developer Options.
 3. **On your Computer**:
-   * A Debian/Ubuntu-based distribution (Ubuntu, Mint, Debian, Pop!_OS, Zorin OS, etc.).
+   * **Linux**: Any Debian/Ubuntu-based distribution (Ubuntu, Mint, Debian, Pop!_OS, Zorin OS, etc.).
+   * **macOS**: macOS 11+ (Intel or Apple Silicon M1/M2/M3/M4).
 
 ---
 
@@ -50,17 +51,25 @@ It utilizes the powerful and fast engine of [scrcpy](https://github.com/Genymobi
 
 Choose your preferred installation method:
 
-### 📦 Option 1: Debian / Ubuntu Package (`.deb`) — Recommended
+### 📦 Option 1: Debian / Ubuntu Package (`.deb`) — Linux Recommended
 
 Download the latest `.deb` package from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases) and install it:
 
 ```bash
-sudo apt install ./dextop-mode_1.0.0_all.deb
+sudo apt install ./dextop-mode_1.0.10_all.deb
 ```
 
 ---
 
-### ⚡ Option 2: One-Line Installer (Terminal)
+### 🍏 Option 2: macOS Installer (`.dmg`) — macOS Recommended
+
+1. Download **`dextop-mode_macOS.dmg`** from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases).
+2. Double-click the `.dmg` image and open **dextop-mode.app**!
+3. If `scrcpy` or `adb` are missing, **DeXtop Mode** will offer a 1-click prompt to automatically install dependencies via Homebrew.
+
+---
+
+### ⚡ Option 3: One-Line Terminal Installer (Linux)
 
 Run this single command in your terminal to automatically build & install the native `.deb` package:
 
@@ -70,7 +79,7 @@ curl -fsSL https://raw.githubusercontent.com/super-magistro/DeXtop-mode/main/ins
 
 ---
 
-### 🐍 Option 3: PyPI / Pip
+### 🐍 Option 4: PyPI / Pip / Pipx (Universal)
 
 ```bash
 pip install dextop-mode
@@ -80,32 +89,20 @@ pipx install dextop-mode
 
 ---
 
-### 🛠️ Option 4: Build from Source
+### 🛠️ Option 5: Build from Source
 
 ```bash
 # 1. Clone this repository
 git clone https://github.com/super-magistro/DeXtop-mode.git
 cd DeXtop-mode
 
-# 2. Build the .deb package
+# 2. Build the .deb package (Linux)
 chmod +x build_deb.sh
 ./build_deb.sh
 
 # 3. Install the generated package
-sudo apt install ./dextop-mode_1.0.0_all.deb
+sudo apt install ./dextop-mode_1.0.10_all.deb
 ```
-
----
-
-### 🍏 Option 5: macOS Installation
-
-1. Install `scrcpy` & `adb` via Homebrew:
-```bash
-brew install scrcpy android-platform-tools
-```
-
-2. Download `dextop-mode_macOS.dmg` from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases), double-click to open, and launch **dextop-mode.app**!  
-*(Or install via terminal: `pipx install dextop-mode`)*
 
 ---
 
@@ -127,11 +124,15 @@ brew install scrcpy android-platform-tools
 
 ## 🗑️ Uninstallation
 
-To remove DeXtop Mode, shortcuts, configurations, and the Python virtual environment:
+To remove DeXtop Mode, desktop menu entries, and configuration:
 
 ```bash
-chmod +x uninstall.sh
-./uninstall.sh
+# On Linux (.deb)
+sudo apt remove dextop-mode
+
+# On Pip / Pipx
+dextop --uninstall
+pipx uninstall dextop-mode
 ```
 
 ---
