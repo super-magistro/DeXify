@@ -1,0 +1,48 @@
+name: Release Build & Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    name: Build Debian Package & Release Artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel build
+          python -m pip install customtkinter pillow
+
+      - name: Build Debian (.deb) Package
+        run: |
+          chmod +x build_deb.sh
+          ./build_deb.sh
+
+      - name: Build Python Package (sdist & wheel)
+        run: |
+          python -m build
+
+      - name: Upload Artifacts to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
+        with:
+          files: |
+            dexify_*.deb
+            dist/*.whl
+            dist/*.tar.gz

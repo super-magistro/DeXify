@@ -5,7 +5,19 @@
 set -e
 
 # Dynamically get the repository directory
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+if [ -n "${BASH_SOURCE[0]}" ] && [ -f "$(dirname "${BASH_SOURCE[0]}")/dextop.py" ]; then
+    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+else
+    # Executed via curl/pipe: clone repository locally
+    INSTALL_TARGET="$HOME/.local/share/dexify"
+    mkdir -p "$HOME/.local/share"
+    if [ -d "$INSTALL_TARGET" ]; then
+        rm -rf "$INSTALL_TARGET"
+    fi
+    echo "Cloning DeXify repository..."
+    git clone https://github.com/super-magistro/DeXify.git "$INSTALL_TARGET"
+    DIR="$INSTALL_TARGET"
+fi
 
 echo "=========================================="
 echo "          Installing DeXtop Mode          "

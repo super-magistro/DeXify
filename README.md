@@ -48,21 +48,52 @@ It utilizes the powerful and fast engine of [scrcpy](https://github.com/Genymobi
 
 ## 📥 Installation
 
-Open your terminal and execute these commands:
+Choose your preferred installation method:
+
+### 📦 Option 1: Debian / Ubuntu Package (`.deb`) — Recommended
+
+Download the latest `.deb` package from [GitHub Releases](https://github.com/super-magistro/DeXify/releases) and install it:
+
+```bash
+sudo apt install ./dexify_1.0.0_all.deb
+```
+
+---
+
+### ⚡ Option 2: One-Line Installer (Terminal)
+
+Run this single command in your terminal to automatically install DeXify:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/super-magistro/DeXify/main/install_dex.sh | bash
+```
+
+---
+
+### 🐍 Option 3: PyPI / Pip
+
+```bash
+pip install dexify
+# or via pipx
+pipx install dexify
+```
+
+---
+
+### 🛠️ Option 4: Build from Source
 
 ```bash
 # 1. Clone this repository
 git clone https://github.com/super-magistro/DeXify.git
 cd DeXify
 
-# 2. Make the installer executable
-chmod +x install_dex.sh
+# 2. Build the .deb package
+chmod +x build_deb.sh
+./build_deb.sh
 
-# 3. Run the installation script
-./install_dex.sh
+# 3. Install the generated package
+sudo apt install ./dexify_1.0.0_all.deb
 ```
-
-> **Note**: The script will ask for your administrator password at startup to install dependencies (`scrcpy`, `adb`, `python3-tk`, `python3-venv`). It then compiles a custom high-quality desktop icon and sets up a local Python virtual environment.
 
 ---
 

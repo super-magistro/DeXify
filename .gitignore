@@ -14,3 +14,11 @@ venv/
 .venv/
 env/
 .env/
+
+# Build artifacts & Debian packages
+*.deb
+build_deb/
+build/
+dist/
+*.egg-info/
+

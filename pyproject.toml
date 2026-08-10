@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dexify"
+version = "1.0.0"
+description = "Modern Python GUI wrapper for Samsung DeX & Android Desktop Mode on Linux using scrcpy"
+readme = "README.md"
+authors = [
+    { name = "Romain Guillon (super-magistro)" }
+]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: X11 Applications",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Hardware",
+    "Topic :: Utilities"
+]
+dependencies = [
+    "customtkinter>=5.2.0",
+    "pillow>=9.0.0"
+]
+requires-python = ">=3.8"
+
+[project.scripts]
+dexify = "dextop:main"
+dextop = "dextop:main"
+
+[project.urls]
+Homepage = "https://github.com/super-magistro/DeXify"
+Repository = "https://github.com/super-magistro/DeXify"
+"Bug Tracker" = "https://github.com/super-magistro/DeXify/issues"

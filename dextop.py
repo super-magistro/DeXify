@@ -906,7 +906,11 @@ class DeXtopModeApp(ctk.CTk):
         self.stop_dex()
         self.destroy()
 
-if __name__ == "__main__":
+def main():
     app = DeXtopModeApp()
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
+
+if __name__ == "__main__":
+    main()
+
