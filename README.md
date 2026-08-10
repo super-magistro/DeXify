@@ -104,7 +104,7 @@ sudo apt install ./dextop-mode_1.0.0_all.deb
 brew install scrcpy android-platform-tools
 ```
 
-2. Download `DeXtop_Mode_macOS.zip` from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases), unzip, and launch **DeXtop Mode.app**!  
+2. Download `dextop-mode_macOS.dmg` from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases), double-click to open, and launch **dextop-mode.app**!  
 *(Or install via terminal: `pipx install dextop-mode`)*
 
 ---

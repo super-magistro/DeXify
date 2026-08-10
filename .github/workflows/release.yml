@@ -73,17 +73,16 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel pyinstaller
           python -m pip install customtkinter pillow
 
-      - name: Generate Icon & Build macOS App Bundle
+      - name: Generate Icon & Build macOS App Bundle (.dmg)
         run: |
           python -c "import dextop; dextop.ensure_app_icon()" || true
           python -m PyInstaller --noconfirm --onedir --windowed --name "dextop-mode" dextop.py
-          cd dist
-          zip -r dextop-mode_macOS.zip "dextop-mode.app"
+          hdiutil create -volname "DeXtop Mode" -srcfolder "dist/dextop-mode.app" -ov -format UDZO "dist/dextop-mode_macOS.dmg"
 
-      - name: Upload macOS Bundle to GitHub Release
+      - name: Upload macOS DMG to GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
         with:
           overwrite: true
           files: |
-            dist/dextop-mode_macOS.zip
+            dist/dextop-mode_macOS.dmg
