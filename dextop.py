@@ -16,6 +16,8 @@ try:
 except ImportError:
     ImageTk = None
 
+__version__ = "1.0.19"
+
 # Set styling theme
 if sys.platform == "darwin":
     for extra_path in ["/opt/homebrew/bin", "/usr/local/bin", "/opt/homebrew/sbin"]:
@@ -363,12 +365,23 @@ class DeXtopModeApp(ctk.CTk):
         self.title_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.title_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
         
+        self.title_box = ctk.CTkFrame(self.title_frame, fg_color="transparent")
+        self.title_box.pack(side="left", anchor="w")
+
         self.title_label = ctk.CTkLabel(
-            self.title_frame, 
+            self.title_box, 
             text="DeXtop Mode", 
             font=ctk.CTkFont(size=24, weight="bold")
         )
-        self.title_label.pack(side="left")
+        self.title_label.pack(anchor="w")
+
+        self.version_label = ctk.CTkLabel(
+            self.title_box,
+            text=f"v{__version__}",
+            font=ctk.CTkFont(size=11, weight="normal"),
+            text_color="#8899a6"
+        )
+        self.version_label.pack(anchor="w")
         
         self.status_indicator = ctk.CTkLabel(
             self.title_frame,

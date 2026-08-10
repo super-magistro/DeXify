@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="dextop-mode",
-    version="1.0.10",
+    version="1.0.19",
     py_modules=["dextop"],
     install_requires=[
         "customtkinter>=5.2.0",
