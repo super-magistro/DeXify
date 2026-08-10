@@ -961,6 +961,27 @@ class DeXtopModeApp(ctk.CTk):
         self.destroy()
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] in ("--uninstall", "-u", "uninstall"):
+        print("Uninstalling DeXtop Mode user shortcuts & config...")
+        shortcut_path = os.path.expanduser("~/.local/share/applications/dextop.desktop")
+        if os.path.exists(shortcut_path):
+            try:
+                os.remove(shortcut_path)
+                print(f"Removed {shortcut_path}")
+            except Exception as e:
+                print(f"Could not remove {shortcut_path}: {e}")
+        config_dir = os.path.expanduser("~/.config/dextop")
+        if os.path.exists(config_dir):
+            try:
+                shutil.rmtree(config_dir)
+                print(f"Removed {config_dir}")
+            except Exception as e:
+                print(f"Could not remove {config_dir}: {e}")
+        if shutil.which("update-desktop-database"):
+            subprocess.run(["update-desktop-database", os.path.expanduser("~/.local/share/applications/")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("DeXtop Mode shortcut and configuration cleaned up successfully.")
+        return
+
     app = DeXtopModeApp()
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
