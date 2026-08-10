@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   build-deb:
@@ -47,3 +48,9 @@ jobs:
             *.deb
             dist/*.whl
             dist/*.tar.gz
+
+      - name: Publish package to PyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
+        with:
+          skip-existing: true
