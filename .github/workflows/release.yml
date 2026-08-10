@@ -83,48 +83,19 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel pyinstaller
           python -m pip install customtkinter pillow
 
-      - name: Generate .icns Icon & Build macOS App Bundle (.dmg)
+      - name: Generate icon.png & convert to .icns
         run: |
-          # Generate the base PNG icon using Pillow directly (no display/tkinter needed in CI)
-          python -c "
-import os
-from PIL import Image, ImageDraw
-icon_dir = os.path.expanduser('~/.config/dextop')
-icon_file = os.path.join(icon_dir, 'icon.png')
-os.makedirs(icon_dir, exist_ok=True)
-img = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
-pixels = img.load()
-for y in range(512):
-    for x in range(512):
-        ratio = (x + y) / 1024.0
-        pixels[x, y] = (int(15 + 73*ratio), int(23 + 5*ratio), int(42 + 93*ratio), 255)
-mask = Image.new('L', (512, 512), 0)
-mask_draw = ImageDraw.Draw(mask)
-mask_draw.rounded_rectangle([20, 20, 492, 492], radius=100, fill=255)
-img.putalpha(mask)
-draw = ImageDraw.Draw(img)
-draw.rounded_rectangle([100, 110, 412, 310], radius=20, outline=(255,255,255,255), width=16)
-draw.rectangle([236, 310, 276, 360], fill=(255,255,255,255))
-draw.rounded_rectangle([180, 360, 332, 385], radius=8, fill=(255,255,255,255))
-draw.rounded_rectangle([310, 180, 420, 390], radius=15, fill=(15,23,42,255), outline=(0,240,255,255), width=12)
-draw.rounded_rectangle([345, 370, 385, 375], radius=2, fill=(0,240,255,255))
-draw.ellipse([358, 192, 372, 206], fill=(0,240,255,255))
-img.save(icon_file)
-print(f'Icon saved to: {icon_file}')
-"
+          python generate_icon.py
           ICON_PNG="$HOME/.config/dextop/icon.png"
-
-          # Convert PNG → .icns using macOS native tools (sips + iconutil)
           mkdir -p dextop.iconset
           for SIZE in 16 32 64 128 256 512; do
             sips -z $SIZE $SIZE "$ICON_PNG" --out "dextop.iconset/icon_${SIZE}x${SIZE}.png" > /dev/null
           done
           iconutil -c icns dextop.iconset -o dextop.icns
 
-          # Build the .app bundle with the native .icns icon
+      - name: Build macOS App Bundle (.app) & package as .dmg
+        run: |
           python -m PyInstaller --noconfirm --onedir --windowed --icon dextop.icns --name "dextop-mode" dextop.py
-
-          # Package into a .dmg disk image
           hdiutil create -volname "DeXtop Mode" -srcfolder "dist/dextop-mode.app" -ov -format UDZO "dist/dextop-mode_macOS.dmg"
 
       - name: Upload macOS DMG to GitHub Release
@@ -153,35 +124,11 @@ print(f'Icon saved to: {icon_file}')
           python -m pip install --upgrade pip setuptools wheel pyinstaller
           python -m pip install customtkinter pillow
 
-      - name: Generate .ico Icon & Build Windows Executable
-        run: |
-          # Generate icon.ico using Pillow directly (no display/tkinter needed in CI)
-          python -c "
-import os
-from PIL import Image, ImageDraw
-img = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
-pixels = img.load()
-for y in range(512):
-    for x in range(512):
-        ratio = (x + y) / 1024.0
-        pixels[x, y] = (int(15 + 73*ratio), int(23 + 5*ratio), int(42 + 93*ratio), 255)
-mask = Image.new('L', (512, 512), 0)
-mask_draw = ImageDraw.Draw(mask)
-mask_draw.rounded_rectangle([20, 20, 492, 492], radius=100, fill=255)
-img.putalpha(mask)
-draw = ImageDraw.Draw(img)
-draw.rounded_rectangle([100, 110, 412, 310], radius=20, outline=(255,255,255,255), width=16)
-draw.rectangle([236, 310, 276, 360], fill=(255,255,255,255))
-draw.rounded_rectangle([180, 360, 332, 385], radius=8, fill=(255,255,255,255))
-draw.rounded_rectangle([310, 180, 420, 390], radius=15, fill=(15,23,42,255), outline=(0,240,255,255), width=12)
-draw.rounded_rectangle([345, 370, 385, 375], radius=2, fill=(0,240,255,255))
-draw.ellipse([358, 192, 372, 206], fill=(0,240,255,255))
-img_ico = img.convert('RGBA')
-img_ico.save('icon.ico', format='ICO', sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
-print('icon.ico generated successfully')
-"
-          # Build the standalone .exe with the native .ico icon
-          python -m PyInstaller --noconfirm --onefile --windowed --icon icon.ico --name "dextop-mode_windows_x64" dextop.py
+      - name: Generate icon.ico
+        run: python generate_icon.py --ico
+
+      - name: Build Windows Executable (.exe)
+        run: python -m PyInstaller --noconfirm --onefile --windowed --icon icon.ico --name "dextop-mode_windows_x64" dextop.py
 
       - name: Upload Windows Executable to GitHub Release
         uses: softprops/action-gh-release@v2
