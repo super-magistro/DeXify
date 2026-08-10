@@ -211,6 +211,44 @@ class PairingDialog(ctk.CTkToplevel):
         threading.Thread(target=run_pair, daemon=True).start()
 
 
+def check_and_install_dependencies():
+    """Checks if scrcpy or adb is missing and offers 1-click auto-installation."""
+    missing = []
+    if not shutil.which("scrcpy"):
+        missing.append("scrcpy")
+    if not shutil.which("adb"):
+        missing.append("adb")
+        
+    if not missing:
+        return True
+        
+    missing_str = ", ".join(missing)
+    if sys.platform == "darwin":
+        has_brew = shutil.which("brew") is not None
+        if has_brew:
+            ans = messagebox.askyesno(
+                "Missing Dependencies",
+                f"The following required dependencies are missing: {missing_str}.\n\n"
+                "Would you like DeXtop Mode to automatically install them via Homebrew now?"
+            )
+            if ans:
+                try:
+                    subprocess.run(["brew", "install", "scrcpy", "android-platform-tools"], check=True)
+                    messagebox.showinfo("Success", "Dependencies installed successfully!")
+                    return True
+                except Exception as e:
+                    messagebox.showerror("Installation Error", f"Failed to install dependencies: {e}")
+                    return False
+        else:
+            messagebox.showwarning(
+                "Missing Dependencies",
+                f"The following required dependencies are missing: {missing_str}.\n\n"
+                "Please install Homebrew (https://brew.sh) or run:\nbrew install scrcpy android-platform-tools"
+            )
+            return False
+    return False
+
+
 class DeXtopModeApp(ctk.CTk):
     def __init__(self):
         super().__init__(className="dextop")
@@ -224,6 +262,9 @@ class DeXtopModeApp(ctk.CTk):
         self.dex_process = None
         self.old_timeout = None
         self.is_connecting = False
+        
+        # Check dependencies on launch
+        check_and_install_dependencies()
         
         # Load config
         self.config = self.load_config()
