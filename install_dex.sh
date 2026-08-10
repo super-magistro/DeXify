@@ -14,8 +14,8 @@ else
     if [ -d "$INSTALL_TARGET" ]; then
         rm -rf "$INSTALL_TARGET"
     fi
-    echo "Cloning DeXify repository..."
-    git clone https://github.com/super-magistro/DeXify.git "$INSTALL_TARGET"
+    echo "Cloning DeXtop Mode repository..."
+    git clone https://github.com/super-magistro/DeXtop-mode.git "$INSTALL_TARGET"
     DIR="$INSTALL_TARGET"
 fi
 
@@ -110,29 +110,18 @@ EOF
 ) & spinner $!
 echo "Done!"
 
-# --- STEP 5: DE-CLUTTERED SHORTCUT ---
-echo -n "[5/5] Configuring DeXtop Mode graphical shortcut... "
+# --- STEP 5: DEBIAN PACKAGE INSTALLATION ---
+echo -n "[5/5] Building & installing native Debian (.deb) package... "
 (
-    mkdir -p "$HOME/.local/share/applications/"
-    
-    # The desktop shortcut points to the Python GUI inside the virtual environment
-    cat <<EOF > "$HOME/.local/share/applications/dextop.desktop"
-[Desktop Entry]
-Version=1.0
-Name=DeXtop Mode
-Comment=Launch DeXtop Mode wrapper (Samsung DeX & Native Desktop)
-Exec=$DIR/venv/bin/python $DIR/dextop.py
-Icon=$HOME/.config/dextop/icon.png
-Terminal=false
-Type=Application
-Categories=Utility;
-StartupWMClass=dextop
-EOF
-    update-desktop-database "$HOME/.local/share/applications/" > /dev/null 2>&1
+    cd "$DIR"
+    chmod +x build_deb.sh
+    ./build_deb.sh > /dev/null 2>&1
+    sudo DEBIAN_FRONTEND=noninteractive apt install -y ./dexify_1.0.0_all.deb > /dev/null 2>&1
 ) & spinner $!
 echo "Done!"
 
 echo "=========================================="
 echo "      Installation successful!            "
 echo "=========================================="
-echo "Search for 'DeXtop Mode' in your application menu to launch the control GUI."
+echo "DeXtop Mode (.deb) has been installed to your system."
+echo "Search for 'DeXtop Mode' in your application menu or run 'dextop' in your terminal."

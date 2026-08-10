@@ -52,7 +52,7 @@ Choose your preferred installation method:
 
 ### 📦 Option 1: Debian / Ubuntu Package (`.deb`) — Recommended
 
-Download the latest `.deb` package from [GitHub Releases](https://github.com/super-magistro/DeXify/releases) and install it:
+Download the latest `.deb` package from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases) and install it:
 
 ```bash
 sudo apt install ./dexify_1.0.0_all.deb
@@ -62,10 +62,10 @@ sudo apt install ./dexify_1.0.0_all.deb
 
 ### ⚡ Option 2: One-Line Installer (Terminal)
 
-Run this single command in your terminal to automatically install DeXify:
+Run this single command in your terminal to automatically build & install the native `.deb` package:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/super-magistro/DeXify/main/install_dex.sh | bash
+curl -fsSL https://raw.githubusercontent.com/super-magistro/DeXtop-mode/main/install_dex.sh | bash
 ```
 
 ---
