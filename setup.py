@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="dexify",
+    name="dextop-mode",
     version="1.0.0",
     py_modules=["dextop"],
     install_requires=[
@@ -10,7 +10,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "dexify=dextop:main",
+            "dextop-mode=dextop:main",
             "dextop=dextop:main",
         ],
     },

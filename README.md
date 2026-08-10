@@ -55,7 +55,7 @@ Choose your preferred installation method:
 Download the latest `.deb` package from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases) and install it:
 
 ```bash
-sudo apt install ./dexify_1.0.0_all.deb
+sudo apt install ./dextop-mode_1.0.0_all.deb
 ```
 
 ---
@@ -73,9 +73,9 @@ curl -fsSL https://raw.githubusercontent.com/super-magistro/DeXtop-mode/main/ins
 ### 🐍 Option 3: PyPI / Pip
 
 ```bash
-pip install dexify
+pip install dextop-mode
 # or via pipx
-pipx install dexify
+pipx install dextop-mode
 ```
 
 ---
@@ -84,15 +84,15 @@ pipx install dexify
 
 ```bash
 # 1. Clone this repository
-git clone https://github.com/super-magistro/DeXify.git
-cd DeXify
+git clone https://github.com/super-magistro/DeXtop-mode.git
+cd DeXtop-mode
 
 # 2. Build the .deb package
 chmod +x build_deb.sh
 ./build_deb.sh
 
 # 3. Install the generated package
-sudo apt install ./dexify_1.0.0_all.deb
+sudo apt install ./dextop-mode_1.0.0_all.deb
 ```
 
 ---

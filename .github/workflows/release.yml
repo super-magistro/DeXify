@@ -43,6 +43,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
         with:
           files: |
-            dexify_*.deb
+            *.deb
             dist/*.whl
             dist/*.tar.gz

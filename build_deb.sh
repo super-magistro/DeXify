@@ -3,7 +3,7 @@ set -e
 
 VERSION="1.0.0"
 BUILD_DIR="build_deb"
-PKG_NAME="dexify_${VERSION}_all.deb"
+PKG_NAME="dextop-mode_${VERSION}_all.deb"
 
 echo "=========================================="
 echo "      Building Debian Package: ${PKG_NAME} "
@@ -19,11 +19,11 @@ mkdir -p "$BUILD_DIR/usr/bin"
 mkdir -p "$BUILD_DIR/usr/lib/python3/dist-packages"
 mkdir -p "$BUILD_DIR/usr/share/applications"
 mkdir -p "$BUILD_DIR/usr/share/icons/hicolor/512x512/apps"
-mkdir -p "$BUILD_DIR/usr/share/doc/dexify"
+mkdir -p "$BUILD_DIR/usr/share/doc/dextop-mode"
 
 # 1. Create DEBIAN/control
 cat <<EOF > "$BUILD_DIR/DEBIAN/control"
-Package: dexify
+Package: dextop-mode
 Version: ${VERSION}
 Architecture: all
 Maintainer: Romain Guillon <super-magistro>
@@ -73,7 +73,7 @@ cat <<'EOF' > "$BUILD_DIR/usr/bin/dextop"
 exec python3 /usr/lib/python3/dist-packages/dextop.py "$@"
 EOF
 chmod 755 "$BUILD_DIR/usr/bin/dextop"
-ln -sf dextop "$BUILD_DIR/usr/bin/dexify"
+ln -sf dextop "$BUILD_DIR/usr/bin/dextop-mode"
 
 # 6. Create Desktop Entry
 cat <<EOF > "$BUILD_DIR/usr/share/applications/dextop.desktop"
@@ -91,8 +91,8 @@ EOF
 chmod 644 "$BUILD_DIR/usr/share/applications/dextop.desktop"
 
 # 7. Create copyright file
-cp LICENSE "$BUILD_DIR/usr/share/doc/dexify/copyright"
-chmod 644 "$BUILD_DIR/usr/share/doc/dexify/copyright"
+cp LICENSE "$BUILD_DIR/usr/share/doc/dextop-mode/copyright"
+chmod 644 "$BUILD_DIR/usr/share/doc/dextop-mode/copyright"
 
 # 8. Build package
 dpkg-deb --root-owner-group --build "$BUILD_DIR" "$PKG_NAME"
