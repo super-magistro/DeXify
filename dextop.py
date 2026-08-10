@@ -17,6 +17,11 @@ except ImportError:
     ImageTk = None
 
 # Set styling theme
+if sys.platform == "darwin":
+    for extra_path in ["/opt/homebrew/bin", "/usr/local/bin", "/opt/homebrew/sbin"]:
+        if os.path.exists(extra_path) and extra_path not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = extra_path + os.pathsep + os.environ.get("PATH", "")
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
