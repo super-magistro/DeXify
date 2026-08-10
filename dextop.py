@@ -21,6 +21,16 @@ if sys.platform == "darwin":
     for extra_path in ["/opt/homebrew/bin", "/usr/local/bin", "/opt/homebrew/sbin"]:
         if os.path.exists(extra_path) and extra_path not in os.environ.get("PATH", ""):
             os.environ["PATH"] = extra_path + os.pathsep + os.environ.get("PATH", "")
+elif sys.platform.startswith("win"):
+    for extra_path in [
+        os.path.expanduser("~\\.config\\dextop\\scrcpy"),
+        "C:\\scrcpy",
+        "C:\\ProgramData\\chocolatey\\bin",
+        "C:\\scoop\\shims",
+        os.path.expanduser("~\\AppData\\Local\\Microsoft\\WinGet\\Links")
+    ]:
+        if os.path.exists(extra_path) and extra_path not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = extra_path + os.pathsep + os.environ.get("PATH", "")
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -83,7 +93,10 @@ def ensure_app_icon():
         print(f"Could not generate app icon: {e}")
 
 def ensure_desktop_shortcut():
-    """Ensures a desktop menu entry exists in ~/.local/share/applications/ for pip/pipx/whl installs."""
+    """Ensures a desktop menu entry exists in ~/.local/share/applications/ for pip/pipx/whl installs on Linux."""
+    if not sys.platform.startswith("linux"):
+        return
+        
     user_apps_dir = os.path.expanduser("~/.local/share/applications")
     shortcut_path = os.path.join(user_apps_dir, "dextop.desktop")
     system_shortcut = "/usr/share/applications/dextop.desktop"
@@ -214,16 +227,39 @@ class PairingDialog(ctk.CTkToplevel):
 def check_and_install_dependencies():
     """Checks if scrcpy or adb is missing and offers 1-click auto-installation."""
     missing = []
-    if not shutil.which("scrcpy"):
+    if not shutil.which("scrcpy") and not shutil.which("scrcpy.exe"):
         missing.append("scrcpy")
-    if not shutil.which("adb"):
+    if not shutil.which("adb") and not shutil.which("adb.exe"):
         missing.append("adb")
         
     if not missing:
         return True
         
     missing_str = ", ".join(missing)
-    if sys.platform == "darwin":
+    if sys.platform.startswith("win"):
+        has_winget = shutil.which("winget") is not None
+        if has_winget:
+            ans = messagebox.askyesno(
+                "Missing Dependencies",
+                f"The following required dependencies are missing: {missing_str}.\n\n"
+                "Would you like DeXtop Mode to automatically install scrcpy via Winget now?"
+            )
+            if ans:
+                try:
+                    subprocess.run(["winget", "install", "Genymobile.scrcpy", "--accept-source-agreements", "--accept-package-agreements"], check=True)
+                    messagebox.showinfo("Success", "Dependencies installed successfully! Please restart DeXtop Mode.")
+                    return True
+                except Exception as e:
+                    messagebox.showerror("Installation Error", f"Failed to install dependencies: {e}")
+                    return False
+        else:
+            messagebox.showwarning(
+                "Missing Dependencies",
+                f"The following required dependencies are missing: {missing_str}.\n\n"
+                "Please install scrcpy from https://github.com/Genymobile/scrcpy or via Chocolatey / Scoop."
+            )
+            return False
+    elif sys.platform == "darwin":
         has_brew = shutil.which("brew") is not None
         if has_brew:
             ans = messagebox.askyesno(
@@ -920,11 +956,7 @@ class DeXtopModeApp(ctk.CTk):
                 dpi = self.config.get("display_dpi", "160")
 
                 # Build arguments based on user config
-                cmd = [
-                    "systemd-inhibit", 
-                    "--what=idle", 
-                    "--who=DeXtop Mode", 
-                    "--why=Using desktop mode", 
+                scrcpy_cmd = [
                     "scrcpy", 
                     "-s", device, 
                     "--turn-screen-off", 
@@ -932,6 +964,11 @@ class DeXtopModeApp(ctk.CTk):
                     "--disable-screensaver",
                     "--audio-codec=aac"
                 ]
+
+                if shutil.which("systemd-inhibit"):
+                    cmd = ["systemd-inhibit", "--what=idle", "--who=DeXtop Mode", "--why=Using desktop mode"] + scrcpy_cmd
+                else:
+                    cmd = scrcpy_cmd
 
                 if display_mode == "Secondary Display (DeX)":
                     cmd.append(f"--new-display=1920x1080/{dpi}")

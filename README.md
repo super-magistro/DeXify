@@ -106,6 +106,13 @@ sudo apt install ./dextop-mode_1.0.10_all.deb
 
 ---
 
+### 🪟 Option 6: Windows Installation (`.exe`)
+
+1. Download **`dextop-mode_windows_x64.exe`** from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases) and double-click to launch!
+2. If `scrcpy` or `adb` are missing, **DeXtop Mode** will offer a 1-click prompt to automatically install `scrcpy` via Winget.
+
+---
+
 ## 💡 How to Use
 
 1. Ensure your phone and PC are on the same Wi-Fi network (or connected via USB).
