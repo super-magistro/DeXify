@@ -4,6 +4,7 @@ import sys
 import json
 import re
 import subprocess
+import shutil
 import threading
 import time
 import tkinter as tk
@@ -72,9 +73,46 @@ def ensure_app_icon():
         draw.rounded_rectangle([345, 370, 385, 375], radius=2, fill=(0, 240, 255, 255))
         draw.ellipse([358, 192, 372, 206], fill=(0, 240, 255, 255))
         
-        img.save(ICON_FILE, "PNG")
+        print(f"Custom icon generated at: {ICON_FILE}")
     except Exception as e:
         print(f"Could not generate app icon: {e}")
+
+def ensure_desktop_shortcut():
+    """Ensures a desktop menu entry exists in ~/.local/share/applications/ for pip/pipx/whl installs."""
+    user_apps_dir = os.path.expanduser("~/.local/share/applications")
+    shortcut_path = os.path.join(user_apps_dir, "dextop.desktop")
+    system_shortcut = "/usr/share/applications/dextop.desktop"
+    
+    if os.path.exists(shortcut_path) or os.path.exists(system_shortcut):
+        return
+        
+    try:
+        os.makedirs(user_apps_dir, exist_ok=True)
+        ensure_app_icon()
+        icon_path = get_app_icon_path() or ICON_FILE
+        
+        exec_cmd = "dextop"
+        if not shutil.which("dextop"):
+            exec_cmd = f"{sys.executable} {os.path.abspath(__file__)}"
+            
+        content = f"""[Desktop Entry]
+Version=1.0
+Name=DeXtop Mode
+Comment=Launch DeXtop Mode wrapper (Samsung DeX & Native Desktop)
+Exec={exec_cmd}
+Icon={icon_path}
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupWMClass=dextop
+"""
+        with open(shortcut_path, "w") as f:
+            f.write(content)
+            
+        if shutil.which("update-desktop-database"):
+            subprocess.run(["update-desktop-database", user_apps_dir], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        print(f"Could not auto-create desktop shortcut: {e}")
 
 
 class PairingDialog(ctk.CTkToplevel):
@@ -184,6 +222,9 @@ class DeXtopModeApp(ctk.CTk):
         
         # Load config
         self.config = self.load_config()
+        
+        # Auto-ensure desktop shortcut for pip/pipx/whl installs
+        ensure_desktop_shortcut()
         
         # Set window and taskbar icon
         icon_path = get_app_icon_path()
