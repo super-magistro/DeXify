@@ -132,4 +132,4 @@ To remove DeXtop Mode and clean up configurations:
 * Engine: [scrcpy](https://github.com/Genymobile/scrcpy) by Genymobile.
 * Wrapper & Configurator: super-magistro.
 
-Licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Licensed under the MIT License. See [LICENSE](https://github.com/super-magistro/DeXtop-mode/blob/main/LICENSE) for details.
