@@ -1,8 +1,13 @@
+import re
 from setuptools import setup, find_packages
+
+with open("dextop.py", "r", encoding="utf-8") as f:
+    match = re.search(r'__version__\s*=\s*"([^"]+)"', f.read())
+    version = match.group(1) if match else "1.0.20"
 
 setup(
     name="dextop-mode",
-    version="1.0.19",
+    version=version,
     py_modules=["dextop"],
     install_requires=[
         "customtkinter>=5.2.0",

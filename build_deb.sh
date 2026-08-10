@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
-VERSION="1.0.19"
+if [ -f "dextop.py" ]; then
+    VERSION=$(grep '__version__' dextop.py | cut -d'"' -f2)
+else
+    VERSION="1.0.20"
+fi
 BUILD_DIR="build_deb"
 PKG_NAME="dextop-mode_${VERSION}_all.deb"
 
