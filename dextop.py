@@ -744,6 +744,17 @@ class DeXtopModeApp(ctk.CTk):
 
     def get_device_model(self, device_id):
         try:
+            # Try getting the user-assigned device name first
+            name = subprocess.check_output(
+                ["adb", "-s", device_id, "shell", "settings", "get", "global", "device_name"], 
+                stderr=subprocess.STDOUT,
+                timeout=2
+            ).decode("utf-8").strip()
+            
+            if name and name.lower() != "null":
+                return name
+                
+            # Fallback to product model
             output = subprocess.check_output(
                 ["adb", "-s", device_id, "shell", "getprop", "ro.product.model"], 
                 stderr=subprocess.STDOUT,

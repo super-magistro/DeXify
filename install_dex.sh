@@ -116,7 +116,7 @@ echo -n "[5/5] Building & installing native Debian (.deb) package... "
     cd "$DIR"
     chmod +x build_deb.sh
     ./build_deb.sh > /dev/null 2>&1
-    DEB_FILE=$(ls "$DIR"/dextop-mode_*.deb 2>/dev/null | head -1)
+    DEB_FILE=$(ls -t "$DIR"/dextop-mode_*.deb 2>/dev/null | head -1)
     sudo DEBIAN_FRONTEND=noninteractive apt install -y "$DEB_FILE" > /dev/null 2>&1
 ) & spinner $!
 echo "Done!"
