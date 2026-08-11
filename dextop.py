@@ -126,6 +126,7 @@ def ensure_app_icon():
         draw.rounded_rectangle([345, 370, 385, 375], radius=2, fill=(0, 240, 255, 255))
         draw.ellipse([358, 192, 372, 206], fill=(0, 240, 255, 255))
         
+        img.save(ICON_FILE)
         print(f"Custom icon generated at: {ICON_FILE}")
     except Exception as e:
         print(f"Could not generate app icon: {e}")
