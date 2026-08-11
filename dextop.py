@@ -48,7 +48,7 @@ try:
 except ImportError:
     ImageTk = None
 
-__version__ = "1.0.24"
+__version__ = "1.0.25"
 
 # Set styling theme
 if sys.platform == "darwin":
