@@ -719,9 +719,11 @@ class DeXtopModeApp(ctk.CTk):
                 if devices:
                     # Select first active device
                     self.connected_device = devices[0]
+                    self.connected_device_name = self.get_device_model(self.connected_device)
                     self.update_status(True, f"Connected: {self.connected_device}")
                 else:
                     self.connected_device = None
+                    self.connected_device_name = None
                     self.update_status(False, "Disconnected")
             time.sleep(2.5)
             
@@ -740,12 +742,26 @@ class DeXtopModeApp(ctk.CTk):
         except Exception:
             return []
 
+    def get_device_model(self, device_id):
+        try:
+            output = subprocess.check_output(
+                ["adb", "-s", device_id, "shell", "getprop", "ro.product.model"], 
+                stderr=subprocess.STDOUT,
+                timeout=2
+            ).decode("utf-8").strip()
+            if output:
+                return output
+        except Exception:
+            pass
+        return device_id
+
     def update_status(self, connected, text):
         def gui_update():
             if connected:
                 self.status_indicator.configure(text=f"● {text}", text_color="#55ff55")
+                name_display = getattr(self, 'connected_device_name', self.connected_device) or self.connected_device
                 self.lbl_device_details.configure(
-                    text=f"Connected device: {self.connected_device}", 
+                    text=f"Connected device: {name_display}", 
                     text_color="#55ff55"
                 )
                 # Auto fill IP and Port entries if connected over Wi-Fi
@@ -805,9 +821,11 @@ class DeXtopModeApp(ctk.CTk):
                     matched = [d for d in devices if target in d or d.startswith(ip)]
                     if matched:
                         self.connected_device = matched[0]
+                        self.connected_device_name = self.get_device_model(self.connected_device)
                         self.update_status(True, f"Connected over Wi-Fi: {self.connected_device}")
                     else:
                         self.connected_device = target
+                        self.connected_device_name = self.get_device_model(self.connected_device)
                         self.update_status(True, f"Connected: {target}")
                 else:
                     self.after(0, lambda: messagebox.showerror(
