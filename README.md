@@ -63,7 +63,7 @@ Choose your platform below:
 #### **Option A: Debian Package (`.deb`) — Recommended**
 Download the latest `.deb` package from [GitHub Releases](https://github.com/super-magistro/DeXtop-mode/releases) and install it:
 ```bash
-sudo apt install ./dextop-mode_1.0.25_all.deb
+sudo apt install ./dextop-mode_1.0.26_all.deb
 ```
 
 #### **Option B: One-Line Terminal Installer**
