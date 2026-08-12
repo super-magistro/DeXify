@@ -407,9 +407,9 @@ class QRPairingDialog(ctk.CTkToplevel):
         qr = qrcode.QRCode(version=1, box_size=8, border=2)
         qr.add_data(qr_data)
         qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
+        img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
         
-        self.qr_photo = ImageTk.PhotoImage(img)
+        self.qr_photo = ctk.CTkImage(light_image=img, dark_image=img, size=(250, 250))
         self.qr_label = ctk.CTkLabel(self, image=self.qr_photo, text="")
         self.qr_label.pack(pady=10)
         
@@ -428,7 +428,9 @@ class QRPairingDialog(ctk.CTkToplevel):
         )
         self.info_lbl.pack(pady=10)
 
-        # Setup Zeroconf
+        self.paired = False
+
+        # Setup Zeroconf (Primary)
         self.zeroconf = None
         self.browser = None
         
@@ -437,24 +439,12 @@ class QRPairingDialog(ctk.CTkToplevel):
                 self.dialog = dialog
             def add_service(self, zc, type_, name):
                 info = zc.get_service_info(type_, name)
-                if info:
+                if info and not self.dialog.paired:
                     addresses = info.parsed_addresses()
                     if addresses:
                         ip = addresses[0]
                         port = info.port
-                        print(f"Discovered ADB pairing service at {ip}:{port}")
-                        self.dialog.after(0, lambda: self.dialog.status_lbl.configure(text=f"Pairing with {ip}:{port}...", text_color="cyan"))
-                        
-                        def pair_thread():
-                            success, msg = self.dialog.parent.run_adb_pair(ip, port, self.dialog.password)
-                            if success:
-                                self.dialog.after(0, lambda: messagebox.showinfo("Success", "Device paired successfully via QR code!"))
-                                self.dialog.after(0, self.dialog.on_close)
-                            else:
-                                self.dialog.after(0, lambda: self.dialog.status_lbl.configure(text="Pairing failed.", text_color="red"))
-                                self.dialog.after(0, lambda: messagebox.showerror("Pairing Failed", f"Failed to pair:\n{msg}"))
-                        
-                        threading.Thread(target=pair_thread, daemon=True).start()
+                        self.dialog.do_pair(ip, port)
             
             def remove_service(self, zc, type_, name):
                 pass
@@ -471,9 +461,50 @@ class QRPairingDialog(ctk.CTkToplevel):
             print(f"Failed to start mDNS listener: {e}")
             self.after(0, lambda: self.status_lbl.configure(text=f"Listener Error: {e}", text_color="red"))
         
+        # Setup ADB mDNS Poller (Fallback)
+        def adb_mdns_poll():
+            while not self.paired:
+                try:
+                    output = subprocess.check_output(["adb", "mdns", "services"]).decode("utf-8")
+                    lines = output.splitlines()
+                    for line in lines:
+                        if "_adb-tls-pairing" in line:
+                            parts = line.split()
+                            if len(parts) >= 3:
+                                ip_port = parts[2]
+                                if ":" in ip_port:
+                                    ip, port = ip_port.split(":")
+                                    self.do_pair(ip, port)
+                                    break
+                except Exception:
+                    pass
+                time.sleep(2)
+                
+        threading.Thread(target=adb_mdns_poll, daemon=True).start()
+        
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         
+    def do_pair(self, ip, port):
+        if self.paired:
+            return
+        self.paired = True
+        print(f"Discovered ADB pairing service at {ip}:{port}")
+        self.after(0, lambda: self.status_lbl.configure(text=f"Pairing with {ip}:{port}...", text_color="cyan"))
+        
+        def pair_thread():
+            success, msg = self.parent.run_adb_pair(ip, port, self.password)
+            if success:
+                self.after(0, lambda: messagebox.showinfo("Success", "Device paired successfully via QR code!"))
+                self.after(0, self.on_close)
+            else:
+                self.paired = False
+                self.after(0, lambda: self.status_lbl.configure(text="Pairing failed.", text_color="red"))
+                self.after(0, lambda: messagebox.showerror("Pairing Failed", f"Failed to pair:\n{msg}"))
+        
+        threading.Thread(target=pair_thread, daemon=True).start()
+        
     def on_close(self):
+        self.paired = True # Stop poller
         try:
             if self.zeroconf:
                 self.zeroconf.close()
