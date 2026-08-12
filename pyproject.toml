@@ -36,7 +36,7 @@ dependencies = [
     "customtkinter>=5.2.0",
     "Pillow",
     "qrcode",
-    "zeroconf>=9.0.0"
+    "zeroconf>=0.13.0"
 ]
 requires-python = ">=3.8"
 
