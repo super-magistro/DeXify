@@ -894,8 +894,8 @@ class DeXtopModeApp(ctk.CTk):
         if not sys.platform.startswith("linux"):
             self.sinks_map = {}
             self.after(0, lambda: (
-                self.audio_dropdown.configure(values=["Default (system)"]),
-                self.audio_dropdown.set("Default (system)")
+                self.audio_dropdown.configure(values=["Default (system)", "Phone Only (No Audio Forwarding)"]),
+                self.audio_dropdown.set(self.config.get("selected_sink", "Default (system)") if self.config.get("selected_sink", "") in ["Default (system)", "Phone Only (No Audio Forwarding)"] else "Default (system)")
             ))
             return
 
@@ -923,14 +923,14 @@ class DeXtopModeApp(ctk.CTk):
                             sinks[sink_name] = sink_id
                 
                 self.sinks_map = sinks
-                values = ["Default"] + list(sinks.keys())
+                values = ["Default", "Phone Only (No Audio Forwarding)"] + list(sinks.keys())
                 
                 # Update dropdown safely
                 def update_dropdown():
                     self.audio_dropdown.configure(values=values)
                     # Restore previous selection if valid
                     saved_sink = self.config.get("selected_sink", "")
-                    if saved_sink in sinks:
+                    if saved_sink in values:
                         self.audio_dropdown.set(saved_sink)
                     else:
                         self.audio_dropdown.set("Default")
@@ -938,15 +938,15 @@ class DeXtopModeApp(ctk.CTk):
             except Exception as e:
                 print(f"Error listing audio devices: {e}")
                 self.sinks_map = {}
-                self.after(0, lambda: (self.audio_dropdown.configure(values=["Default"]), self.audio_dropdown.set("Default")))
+                self.after(0, lambda: (self.audio_dropdown.configure(values=["Default", "Phone Only (No Audio Forwarding)"]), self.audio_dropdown.set("Default")))
                 
         threading.Thread(target=run_refresh, daemon=True).start()
 
     def on_audio_selected(self, choice):
-        self.config["selected_sink"] = choice if choice not in ("Default", "Default (system)") else ""
+        self.config["selected_sink"] = choice
         self.save_config()
         # Apply immediately via wpctl on Linux only
-        if sys.platform.startswith("linux") and choice not in ("Default", "Default (system)") and choice in self.sinks_map:
+        if sys.platform.startswith("linux") and choice not in ("Default", "Default (system)", "Phone Only (No Audio Forwarding)") and choice in self.sinks_map:
             sink_id = self.sinks_map[choice]
             try:
                 subprocess.run(["wpctl", "set-default", str(sink_id)])
@@ -1021,7 +1021,7 @@ class DeXtopModeApp(ctk.CTk):
         selected_audio = self.audio_dropdown.get()
         
         # Audio redirect via wpctl (Linux / PipeWire only)
-        if sys.platform.startswith("linux") and selected_audio not in ("Default", "Default (system)") and selected_audio in self.sinks_map:
+        if sys.platform.startswith("linux") and selected_audio not in ("Default", "Default (system)", "Phone Only (No Audio Forwarding)") and selected_audio in self.sinks_map:
             sink_id = self.sinks_map[selected_audio]
             try:
                 subprocess.run(["wpctl", "set-default", str(sink_id)])
@@ -1062,9 +1062,13 @@ class DeXtopModeApp(ctk.CTk):
                     "-s", device, 
                     "--turn-screen-off", 
                     "--stay-awake", 
-                    "--disable-screensaver",
-                    "--audio-codec=aac"
+                    "--disable-screensaver"
                 ]
+
+                if selected_audio == "Phone Only (No Audio Forwarding)":
+                    scrcpy_cmd.append("--no-audio")
+                else:
+                    scrcpy_cmd.append("--audio-codec=aac")
 
                 if shutil.which("systemd-inhibit"):
                     cmd = ["systemd-inhibit", "--what=idle", "--who=DeXtop Mode", "--why=Using desktop mode"] + scrcpy_cmd
