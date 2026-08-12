@@ -537,15 +537,6 @@ class DeXtopModeApp(ctk.CTk):
         )
         self.btn_pair_open.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
 
-        # Manual Repair Gestures Button on Main Connection Tab
-        self.btn_repair_gestures_main = ctk.CTkButton(
-            self.tab_conn,
-            text="🔄 Repair Phone Gestures (One UI)",
-            fg_color="#2b72a5",
-            hover_color="#1d5075",
-            command=self.manual_repair_gestures
-        )
-        self.btn_repair_gestures_main.grid(row=4, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
 
         # Current device details
         self.lbl_device_details = ctk.CTkLabel(
@@ -998,11 +989,18 @@ class DeXtopModeApp(ctk.CTk):
         if not self.connected_device:
             messagebox.showwarning("No Device", "Please connect a device first.")
             return
-        success, msg = self.repair_gestures_adb()
-        if success:
-            messagebox.showinfo("Gestures Repaired", f"Success:\n{msg}")
-        else:
-            messagebox.showerror("Repair Failed", f"Error:\n{msg}")
+            
+        if not messagebox.askyesno("Warning", "⚠️ ONLY use this if your phone's gestures are currently broken (e.g. after a DeX crash).\n\nIf your gestures are working fine, using this manual repair will actually break them!\n\nAre you sure you want to proceed?"):
+            return
+            
+        def do_repair():
+            success, msg = self.repair_gestures_adb()
+            if success:
+                self.after(0, lambda: messagebox.showinfo("Gestures Repaired", f"Success:\n{msg}"))
+            else:
+                self.after(0, lambda: messagebox.showerror("Repair Failed", f"Error:\n{msg}"))
+                
+        threading.Thread(target=do_repair, daemon=True).start()
 
     # --- DEX LIFECYCLE MANAGEMENT ---
     def toggle_dex(self):
