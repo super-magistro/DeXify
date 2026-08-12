@@ -11,7 +11,9 @@ setup(
     py_modules=["dextop"],
     install_requires=[
         "customtkinter>=5.2.0",
-        "pillow>=9.0.0",
+        "Pillow",
+        "qrcode",
+        "zeroconf>=0.13.0",
     ],
     entry_points={
         "console_scripts": [

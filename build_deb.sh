@@ -31,7 +31,7 @@ Package: dextop-mode
 Version: ${VERSION}
 Architecture: all
 Maintainer: Romain Guillon <super-magistro>
-Depends: scrcpy, adb, python3 (>= 3.8), python3-pil, python3-pil.imagetk, python3-tk, ffmpeg
+Depends: scrcpy, adb, python3 (>= 3.8), python3-pil, python3-pil.imagetk, python3-tk, ffmpeg, python3-qrcode, python3-zeroconf
 Section: utils
 Priority: optional
 Homepage: https://github.com/super-magistro/DeXtop-mode
@@ -96,6 +96,9 @@ if [ -n "$DARK_SRC" ] && [ -d "$DARK_SRC" ]; then
 else
     python3 -m pip install darkdetect --target="$BUILD_DIR/usr/lib/python3/dist-packages/" --no-deps >/dev/null 2>&1 || true
 fi
+
+# Ensure qrcode, zeroconf, and ifaddr are included if system packages are missing (fallback)
+python3 -m pip install qrcode zeroconf ifaddr --target="$BUILD_DIR/usr/lib/python3/dist-packages/" --no-deps >/dev/null 2>&1 || true
 
 # 4. Generate icon and place it in hicolor icons and pixmaps folders
 mkdir -p "$BUILD_DIR/usr/share/pixmaps"

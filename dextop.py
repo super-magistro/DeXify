@@ -7,6 +7,9 @@ import subprocess
 import shutil
 import threading
 import time
+import string
+import random
+import socket
 try:
     import tkinter as tk
     import customtkinter as ctk
@@ -221,18 +224,27 @@ class PairingDialog(ctk.CTkToplevel):
             text="Start Pairing",
             command=self.start_pairing
         )
-        self.btn_pair.grid(row=4, column=0, columnspan=2, padx=20, pady=15, sticky="ew")
+        self.btn_pair.grid(row=4, column=0, columnspan=2, padx=20, pady=(15, 5), sticky="ew")
+        
+        self.btn_qr = ctk.CTkButton(
+            self,
+            text="📷 Pair with QR Code instead",
+            fg_color="#1a4f7a",
+            hover_color="#246a9f",
+            command=self.open_qr_pairing
+        )
+        self.btn_qr.grid(row=5, column=0, columnspan=2, padx=20, pady=(5, 15), sticky="ew")
         
         # Instructions Box inside the Dialog
         self.help_frame = ctk.CTkFrame(self, fg_color="#2b3b4c", corner_radius=8)
-        self.help_frame.grid(row=5, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
+        self.help_frame.grid(row=6, column=0, columnspan=2, padx=20, pady=10, sticky="ew")
         
         help_text = (
             "📌 Where to find this information on Android?\n\n"
             "1. Go to Settings > Developer Options.\n"
             "2. Enable and click on 'Wireless debugging'.\n"
-            "3. Select 'Pair device with pairing code'.\n"
-            "4. Copy the Pairing Code (6 digits) and the IP address & port (e.g., 192.168.x.x:39361) into the fields above."
+            "3. Select 'Pair device with pairing code' (or QR Code).\n"
+            "4. Follow the on-screen instructions."
         )
         self.help_lbl = ctk.CTkLabel(
             self.help_frame,
@@ -243,6 +255,13 @@ class PairingDialog(ctk.CTkToplevel):
         )
         self.help_lbl.pack(padx=15, pady=10, fill="both")
         
+    def open_qr_pairing(self):
+        if qrcode is None or Zeroconf is None:
+            messagebox.showerror("Missing Dependencies", "The 'qrcode' or 'zeroconf' python libraries are missing.\nPlease install them to use this feature.")
+            return
+        self.destroy()
+        QRPairingDialog(self.parent)
+
     def start_pairing(self):
         ip = self.entry_ip.get().strip()
         port = self.entry_port.get().strip()
@@ -340,6 +359,107 @@ def check_and_install_dependencies():
             return False
 
     return False
+
+class QRPairingDialog(ctk.CTkToplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.title("Pair via QR Code")
+        self.geometry("380x550")
+        self.resizable(False, False)
+        self.transient(parent)
+        self.grab_set()
+        
+        # Center relative to parent
+        parent_x = parent.winfo_x()
+        parent_y = parent.winfo_y()
+        self.geometry(f"+{parent_x + 100}+{parent_y + 20}")
+
+        # Generate Password
+        self.password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+        try:
+            self.service_name = socket.gethostname()
+        except Exception:
+            self.service_name = "DeXify"
+
+        ctk.CTkLabel(
+            self, 
+            text="Scan to Pair", 
+            font=ctk.CTkFont(size=20, weight="bold")
+        ).pack(pady=(20, 10))
+
+        # Create QR Code Image
+        if qrcode is None:
+            ctk.CTkLabel(self, text="qrcode library not installed.").pack(pady=20)
+            return
+            
+        qr_data = f"WIFI:T:ADB;S:{self.service_name};P:{self.password};;"
+        qr = qrcode.QRCode(version=1, box_size=8, border=2)
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        self.qr_photo = ImageTk.PhotoImage(img)
+        self.qr_label = ctk.CTkLabel(self, image=self.qr_photo, text="")
+        self.qr_label.pack(pady=10)
+        
+        self.status_lbl = ctk.CTkLabel(
+            self,
+            text="Waiting for device to scan...",
+            font=ctk.CTkFont(weight="bold"),
+            text_color="orange"
+        )
+        self.status_lbl.pack(pady=(0, 10))
+        
+        self.info_lbl = ctk.CTkLabel(
+            self, 
+            text="1. On your phone, go to Settings > Developer Options\n2. Open 'Wireless debugging'\n3. Select 'Pair device with QR code'\n4. Scan the code above",
+            justify="left"
+        )
+        self.info_lbl.pack(pady=10)
+
+        # Setup Zeroconf
+        self.zeroconf = None
+        self.browser = None
+        try:
+            if Zeroconf:
+                self.zeroconf = Zeroconf()
+                self.browser = ServiceBrowser(self.zeroconf, "_adb-tls-pairing._tcp.local.", handlers=[self.on_service_state_change])
+        except Exception as e:
+            print(f"Failed to start mDNS listener: {e}")
+        
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        
+    def on_service_state_change(self, zeroconf, service_type, name, state_change):
+        if state_change is ServiceStateChange.Added:
+            info = zeroconf.get_service_info(service_type, name)
+            if info:
+                addresses = info.parsed_addresses()
+                if addresses:
+                    ip = addresses[0]
+                    port = info.port
+                    print(f"Discovered ADB pairing service at {ip}:{port}")
+                    self.after(0, lambda: self.status_lbl.configure(text=f"Pairing with {ip}:{port}...", text_color="cyan"))
+                    
+                    # Run pairing in a separate thread to avoid blocking the zeroconf handler
+                    def pair_thread():
+                        success, msg = self.parent.run_adb_pair(ip, port, self.password)
+                        if success:
+                            self.after(0, lambda: messagebox.showinfo("Success", "Device paired successfully via QR code!"))
+                            self.after(0, self.on_close)
+                        else:
+                            self.after(0, lambda: self.status_lbl.configure(text="Pairing failed.", text_color="red"))
+                            self.after(0, lambda: messagebox.showerror("Pairing Failed", f"Failed to pair:\n{msg}"))
+                    
+                    threading.Thread(target=pair_thread, daemon=True).start()
+                        
+    def on_close(self):
+        try:
+            if self.zeroconf:
+                self.zeroconf.close()
+        except Exception:
+            pass
+        self.destroy()
 
 class DeXtopModeApp(ctk.CTk):
     def __init__(self):

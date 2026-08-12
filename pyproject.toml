@@ -34,7 +34,9 @@ classifiers = [
 ]
 dependencies = [
     "customtkinter>=5.2.0",
-    "pillow>=9.0.0"
+    "Pillow",
+    "qrcode",
+    "zeroconf>=9.0.0"
 ]
 requires-python = ">=3.8"
 
