@@ -257,7 +257,7 @@ class PairingDialog(ctk.CTkToplevel):
         
     def open_qr_pairing(self):
         if qrcode is None or Zeroconf is None:
-            messagebox.showerror("Missing Dependencies", "The 'qrcode' or 'zeroconf' python libraries are missing.\nPlease install them to use this feature.")
+            messagebox.showerror("Missing Dependencies", "The 'qrcode' or 'zeroconf' python libraries are missing.\nPlease install them to use this feature.", parent=self)
             return
         self.destroy()
         QRPairingDialog(self.parent)
