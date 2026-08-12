@@ -51,6 +51,16 @@ try:
 except ImportError:
     ImageTk = None
 
+try:
+    import qrcode
+except ImportError:
+    qrcode = None
+
+try:
+    from zeroconf import ServiceBrowser, Zeroconf, ServiceStateChange
+except ImportError:
+    Zeroconf = None
+
 __version__ = "1.0.26"
 
 # Set styling theme
