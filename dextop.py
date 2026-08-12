@@ -431,38 +431,48 @@ class QRPairingDialog(ctk.CTkToplevel):
         # Setup Zeroconf
         self.zeroconf = None
         self.browser = None
+        
+        class QRListener:
+            def __init__(self, dialog):
+                self.dialog = dialog
+            def add_service(self, zc, type_, name):
+                info = zc.get_service_info(type_, name)
+                if info:
+                    addresses = info.parsed_addresses()
+                    if addresses:
+                        ip = addresses[0]
+                        port = info.port
+                        print(f"Discovered ADB pairing service at {ip}:{port}")
+                        self.dialog.after(0, lambda: self.dialog.status_lbl.configure(text=f"Pairing with {ip}:{port}...", text_color="cyan"))
+                        
+                        def pair_thread():
+                            success, msg = self.dialog.parent.run_adb_pair(ip, port, self.dialog.password)
+                            if success:
+                                self.dialog.after(0, lambda: messagebox.showinfo("Success", "Device paired successfully via QR code!"))
+                                self.dialog.after(0, self.dialog.on_close)
+                            else:
+                                self.dialog.after(0, lambda: self.dialog.status_lbl.configure(text="Pairing failed.", text_color="red"))
+                                self.dialog.after(0, lambda: messagebox.showerror("Pairing Failed", f"Failed to pair:\n{msg}"))
+                        
+                        threading.Thread(target=pair_thread, daemon=True).start()
+            
+            def remove_service(self, zc, type_, name):
+                pass
+                
+            def update_service(self, zc, type_, name):
+                pass
+
         try:
             if Zeroconf:
                 self.zeroconf = Zeroconf()
-                self.browser = ServiceBrowser(self.zeroconf, "_adb-tls-pairing._tcp.local.", handlers=[self.on_service_state_change])
+                self.listener = QRListener(self)
+                self.browser = ServiceBrowser(self.zeroconf, "_adb-tls-pairing._tcp.local.", listener=self.listener)
         except Exception as e:
             print(f"Failed to start mDNS listener: {e}")
+            self.after(0, lambda: self.status_lbl.configure(text=f"Listener Error: {e}", text_color="red"))
         
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         
-    def on_service_state_change(self, zeroconf, service_type, name, state_change):
-        if state_change is ServiceStateChange.Added:
-            info = zeroconf.get_service_info(service_type, name)
-            if info:
-                addresses = info.parsed_addresses()
-                if addresses:
-                    ip = addresses[0]
-                    port = info.port
-                    print(f"Discovered ADB pairing service at {ip}:{port}")
-                    self.after(0, lambda: self.status_lbl.configure(text=f"Pairing with {ip}:{port}...", text_color="cyan"))
-                    
-                    # Run pairing in a separate thread to avoid blocking the zeroconf handler
-                    def pair_thread():
-                        success, msg = self.parent.run_adb_pair(ip, port, self.password)
-                        if success:
-                            self.after(0, lambda: messagebox.showinfo("Success", "Device paired successfully via QR code!"))
-                            self.after(0, self.on_close)
-                        else:
-                            self.after(0, lambda: self.status_lbl.configure(text="Pairing failed.", text_color="red"))
-                            self.after(0, lambda: messagebox.showerror("Pairing Failed", f"Failed to pair:\n{msg}"))
-                    
-                    threading.Thread(target=pair_thread, daemon=True).start()
-                        
     def on_close(self):
         try:
             if self.zeroconf:
