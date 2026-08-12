@@ -36,6 +36,13 @@ echo "=========================================="
 echo "          Uninstalling DeXtop Mode        "
 echo "=========================================="
 
+echo "Administrator privileges are required for uninstallation."
+sudo -k
+sudo -v
+
+# Keep the sudo token active in the background
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+
 # --- STEP 1: REMOVE SHORTCUTS & DEBIAN PACKAGE ---
 echo -n "[1/3] Removing Debian package, shortcuts & configs... "
 (
