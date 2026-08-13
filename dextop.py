@@ -1255,15 +1255,18 @@ class DeXtopModeApp(ctk.CTk):
                 # Check keyboard capture option
                 if self.config.get("keyboard_uhid", False):
                     cmd.append("--keyboard=uhid")
+                # Use pty to force line-buffering in scrcpy (fixes C stdout block-buffering)
+                import pty
+                master_fd, slave_fd = pty.openpty()
                 
                 # Execute in the background synchronously in this thread
                 self.dex_process = subprocess.Popen(
                     cmd,
-                    stdout=subprocess.PIPE,
+                    stdout=slave_fd,
                     stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1
+                    close_fds=True
                 )
+                os.close(slave_fd)
                 
                 # Update button in GUI
                 self.after(0, lambda: self.btn_launch.configure(
@@ -1274,11 +1277,13 @@ class DeXtopModeApp(ctk.CTk):
                 ))
                 
                 # Wait for scrcpy to exit and monitor output for screen turn on
-                for line in iter(self.dex_process.stdout.readline, ""):
-                    if "Device screen turned on" in line:
-                        print("User woke up the phone. Stopping DeX automatically...")
-                        self.stop_dex()
-                        break
+                import os as os_mod
+                with os_mod.fdopen(master_fd, 'r', errors='replace') as f:
+                    for line in iter(f.readline, ""):
+                        if "Device screen turned on" in line or "Screen turned on" in line:
+                            print("User woke up the phone. Stopping DeX automatically...")
+                            self.stop_dex()
+                            break
                 
                 self.dex_process.wait()
                 
