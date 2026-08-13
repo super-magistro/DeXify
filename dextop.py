@@ -1276,19 +1276,51 @@ class DeXtopModeApp(ctk.CTk):
                     hover_color="#ff3333"
                 ))
                 
-                # Wait for scrcpy to exit and monitor output for screen turn on
-                import os as os_mod
-                with os_mod.fdopen(master_fd, 'r', errors='replace') as f:
-                    for line in iter(f.readline, ""):
-                        if "Device screen turned on" in line or "Screen turned on" in line:
-                            print("User woke up the phone. Stopping DeX automatically...")
-                            self.stop_dex()
-                            break
+                # Flag to stop monitors
+                monitoring = True
+
+                # Monitor 1: scrcpy logs via pty
+                def log_monitor():
+                    import os as os_mod
+                    try:
+                        with os_mod.fdopen(master_fd, 'r', errors='replace') as f:
+                            for line in iter(f.readline, ""):
+                                if not monitoring: break
+                                if "Device screen turned on" in line or "Screen turned on" in line:
+                                    print("User woke up the phone (detected via scrcpy log). Stopping DeX...")
+                                    self.stop_dex()
+                                    break
+                    except Exception:
+                        pass
+                
+                threading.Thread(target=log_monitor, daemon=True).start()
+
+                # Monitor 2: Android dumpsys input_method polling
+                def adb_monitor():
+                    # Wait a few seconds for scrcpy to initialize and turn the screen off
+                    time.sleep(3)
+                    while monitoring and self.dex_process and self.dex_process.poll() is None:
+                        try:
+                            output = subprocess.check_output(
+                                ["adb", "-s", device, "shell", "dumpsys", "input_method"], 
+                                timeout=2
+                            ).decode("utf-8", errors="ignore")
+                            if "mInteractive=true" in output:
+                                print("User woke up the phone (mInteractive=true). Stopping DeX...")
+                                self.stop_dex()
+                                break
+                        except Exception:
+                            pass
+                        time.sleep(1.5)
+
+                threading.Thread(target=adb_monitor, daemon=True).start()
                 
                 self.dex_process.wait()
+                monitoring = False
                 
             except Exception as e:
-                self.after(0, lambda: messagebox.showerror("DeX Error", f"Error during launch: {str(e)}"))
+                err_msg = str(e)
+                self.after(0, lambda err=err_msg: messagebox.showerror("DeX Error", f"Error during launch: {err}"))
             finally:
                 # Cleanup
                 self.dex_process = None
