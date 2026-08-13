@@ -387,10 +387,9 @@ class QRPairingDialog(ctk.CTkToplevel):
 
         # Generate Password
         self.password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-        try:
-            self.service_name = socket.gethostname()
-        except Exception:
-            self.service_name = "DeXify"
+        # Use a unique session ID as service name so concurrent sessions don't clash
+        import uuid
+        self.service_name = f"DeXify-{uuid.uuid4().hex[:8]}"
 
         ctk.CTkLabel(
             self, 
@@ -466,16 +465,17 @@ class QRPairingDialog(ctk.CTkToplevel):
             while not self.paired:
                 try:
                     output = subprocess.check_output(["adb", "mdns", "services"]).decode("utf-8")
-                    lines = output.splitlines()
-                    for line in lines:
+                    for line in output.splitlines():
                         if "_adb-tls-pairing" in line:
                             parts = line.split()
-                            if len(parts) >= 3:
-                                ip_port = parts[2]
+                            if len(parts) >= 1:
+                                # ip_port is always the last token; use rsplit for IPv6 safety
+                                ip_port = parts[-1]
                                 if ":" in ip_port:
-                                    ip, port = ip_port.split(":")
-                                    self.do_pair(ip, port)
-                                    break
+                                    ip, port = ip_port.rsplit(":", 1)
+                                    if port.isdigit():
+                                        self.do_pair(ip, port)
+                                        break
                 except Exception:
                     pass
                 time.sleep(2)
