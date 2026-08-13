@@ -61,7 +61,7 @@ try:
 except ImportError:
     Zeroconf = None
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 # Set styling theme
 if sys.platform == "darwin":
@@ -571,6 +571,7 @@ class DeXtopModeApp(ctk.CTk):
             "selected_sink": "",
             "mouse_uhid": False,
             "keyboard_uhid": False,
+            "clipboard_sync": True,
             "fix_oneui_gestures": True,
             "display_mode": "Secondary Display (DeX)",
             "display_dpi": "160"
@@ -846,6 +847,18 @@ class DeXtopModeApp(ctk.CTk):
             self.switch_keyboard.deselect()
         self.switch_keyboard.grid(row=8, column=0, padx=10, pady=5, sticky="w")
 
+        # Clipboard sync switch
+        self.switch_clipboard = ctk.CTkSwitch(
+            self.tab_settings,
+            text="Sync clipboard between phone and PC (copy/paste)",
+            command=self.on_settings_changed
+        )
+        if self.config.get("clipboard_sync", True):
+            self.switch_clipboard.select()
+        else:
+            self.switch_clipboard.deselect()
+        self.switch_clipboard.grid(row=9, column=0, padx=10, pady=5, sticky="w")
+
         # Info note about UHID mode release keys
         uhid_info = (
             "💡 In physical capture mode (UHID):\n"
@@ -860,7 +873,7 @@ class DeXtopModeApp(ctk.CTk):
             justify="left",
             wraplength=520
         )
-        uhid_lbl.grid(row=9, column=0, padx=10, pady=8, sticky="w")
+        uhid_lbl.grid(row=10, column=0, padx=10, pady=8, sticky="w")
 
         # Info note about hidden scrcpy shortcut
         info_lbl = ctk.CTkLabel(
@@ -871,7 +884,7 @@ class DeXtopModeApp(ctk.CTk):
             justify="left",
             wraplength=500
         )
-        info_lbl.grid(row=10, column=0, padx=10, pady=(5, 0), sticky="w")
+        info_lbl.grid(row=11, column=0, padx=10, pady=(5, 0), sticky="w")
 
     # --- DEVICE MONITORING & CONNECTION ---
     def monitor_devices(self):
@@ -1130,6 +1143,7 @@ class DeXtopModeApp(ctk.CTk):
         self.config["fix_oneui_gestures"] = self.switch_fix_gestures.get() == 1
         self.config["mouse_uhid"] = self.switch_mouse.get() == 1
         self.config["keyboard_uhid"] = self.switch_keyboard.get() == 1
+        self.config["clipboard_sync"] = self.switch_clipboard.get() == 1
         self.config["display_mode"] = self.opt_display_mode.get()
         raw_dpi = self.opt_dpi.get()
         self.config["display_dpi"] = raw_dpi.split()[0] if raw_dpi else "160"
@@ -1257,6 +1271,9 @@ class DeXtopModeApp(ctk.CTk):
                 # Check keyboard capture option
                 if self.config.get("keyboard_uhid", False):
                     cmd.append("--keyboard=uhid")
+                # Check clipboard sync option (enabled by default)
+                if not self.config.get("clipboard_sync", True):
+                    cmd.append("--no-clipboard-autosync")
                 # Use pty to force line-buffering in scrcpy (fixes C stdout block-buffering)
                 import pty
                 master_fd, slave_fd = pty.openpty()
