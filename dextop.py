@@ -61,7 +61,7 @@ try:
 except ImportError:
     Zeroconf = None
 
-__version__ = "1.0.26"
+__version__ = "1.1.1"
 
 # Set styling theme
 if sys.platform == "darwin":
