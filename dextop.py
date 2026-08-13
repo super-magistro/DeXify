@@ -1298,34 +1298,56 @@ class DeXtopModeApp(ctk.CTk):
                 threading.Thread(target=log_monitor, daemon=True).start()
 
                 # Monitor 2: Android dumpsys input_method polling
+                # 3-phase state machine:
+                # Phase 1: Wait for screen to be ON (scrcpy has started and screen is active)
+                # Phase 2: Detect power button press (ON → OFF): reset settings, close scrcpy
+                # Phase 3: Detect unlock (OFF → ON): force-stop launcher so it restarts with screen ON (fixes gestures)
                 def adb_monitor():
-                    screen_was_off = False
+                    time.sleep(3)  # Wait for scrcpy to fully initialize
+                    phase = "WAIT_ON"  # WAIT_ON → WAIT_SLEEP → WAIT_UNLOCK
                     while monitoring and self.dex_process and self.dex_process.poll() is None:
                         try:
                             output = subprocess.check_output(
-                                ["adb", "-s", device, "shell", "dumpsys", "input_method"], 
+                                ["adb", "-s", device, "shell", "dumpsys", "input_method"],
                                 timeout=2
                             ).decode("utf-8", errors="ignore")
-                            
-                            if "mInteractive=false" in output:
-                                screen_was_off = True
-                            elif "mInteractive=true" in output and screen_was_off:
-                                print("User woke up the phone. Repairing gestures BEFORE closing DeX...")
-                                
-                                # Repair gestures first while DeX window is still open
-                                if display_mode == "Secondary Display (DeX)" and self.config.get("fix_oneui_gestures", True) and device:
+                            interactive = "mInteractive=true" in output
+
+                            if phase == "WAIT_ON":
+                                if interactive:
+                                    phase = "WAIT_SLEEP"
+                                    print("[ADB Monitor] Screen is ON, watching for power button...")
+
+                            elif phase == "WAIT_SLEEP":
+                                if not interactive:
+                                    print("[ADB Monitor] Power button pressed. Screen ASLEEP.")
+                                    phase = "WAIT_UNLOCK"
+
+                                    # Phase 2: screen is OFF — reset DeX settings and close scrcpy
+                                    if display_mode == "Secondary Display (DeX)" and self.config.get("fix_oneui_gestures", True):
+                                        try:
+                                            subprocess.run(["adb", "-s", device, "shell", "settings", "put", "global", "force_desktop_mode_on_external_displays", "0"], stdout=subprocess.DEVNULL)
+                                            subprocess.run(["adb", "-s", device, "shell", "am", "stop-service", "-a", "com.sec.android.desktopmode.action.STOP_DESKTOP_MODE"], stdout=subprocess.DEVNULL)
+                                            self.gestures_already_repaired = True
+                                        except Exception as e:
+                                            print(f"[ADB Monitor] Could not reset settings: {e}")
+
+                                    print("[ADB Monitor] Closing scrcpy now...")
+                                    self.stop_dex()
+
+                            elif phase == "WAIT_UNLOCK":
+                                if interactive:
+                                    print("[ADB Monitor] User unlocked phone. Force-stopping launcher to restore gestures...")
+                                    # Phase 3: screen is ON again — force-stop launcher so it restarts with gestures
                                     try:
-                                        self.repair_gestures_adb(device)
-                                        self.gestures_already_repaired = True
+                                        subprocess.run(["adb", "-s", device, "shell", "am", "force-stop", "com.sec.android.app.launcher"], stdout=subprocess.DEVNULL)
                                     except Exception as e:
-                                        print(f"Could not repair gestures: {e}")
-                                
-                                print("Gestures repaired. Now stopping DeX...")
-                                self.stop_dex()
-                                break
+                                        print(f"[ADB Monitor] Could not restart launcher: {e}")
+                                    break
+
                         except Exception:
                             pass
-                        time.sleep(1.5)
+                        time.sleep(1.0)
 
                 threading.Thread(target=adb_monitor, daemon=True).start()
                 
