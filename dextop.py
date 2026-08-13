@@ -1140,10 +1140,7 @@ class DeXtopModeApp(ctk.CTk):
         if not target_device:
             return False, "No device connected."
         try:
-            # 0. Force screen to sleep first. Samsung OS needs the screen to be OFF
-            # when force_desktop_mode_on_external_displays is flipped back to 0, 
-            # otherwise the gesture navigation bar won't reload properly.
-            subprocess.run(["adb", "-s", target_device, "shell", "input", "keyevent", "KEYCODE_SLEEP"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            import time
             
             # 1. Reset force_desktop_mode setting to 0 (crucial: exits external display mode lock)
             subprocess.run(["adb", "-s", target_device, "shell", "settings", "put", "global", "force_desktop_mode_on_external_displays", "0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -1151,8 +1148,8 @@ class DeXtopModeApp(ctk.CTk):
             # 2. Stop Samsung DeX desktop mode service if active
             subprocess.run(["adb", "-s", target_device, "shell", "am", "stop-service", "-a", "com.sec.android.desktopmode.action.STOP_DESKTOP_MODE"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
-            # 3. Wake screen
-            subprocess.run(["adb", "-s", target_device, "shell", "input", "keyevent", "KEYCODE_WAKEUP"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # Attendre que le système Android enregistre bien la désactivation du mode bureau
+            time.sleep(0.8)
             
             # 4. Force-stop Samsung One UI Home launcher (restarts launcher & rebinds navigation in < 1s)
             subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.sec.android.app.launcher"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -1313,7 +1310,17 @@ class DeXtopModeApp(ctk.CTk):
                             if "mInteractive=false" in output:
                                 screen_was_off = True
                             elif "mInteractive=true" in output and screen_was_off:
-                                print("User woke up the phone (mInteractive=true). Stopping DeX...")
+                                print("User woke up the phone. Repairing gestures BEFORE closing DeX...")
+                                
+                                # Repair gestures first while DeX window is still open
+                                if display_mode == "Secondary Display (DeX)" and self.config.get("fix_oneui_gestures", True) and device:
+                                    try:
+                                        self.repair_gestures_adb(device)
+                                        self.gestures_already_repaired = True
+                                    except Exception as e:
+                                        print(f"Could not repair gestures: {e}")
+                                
+                                print("Gestures repaired. Now stopping DeX...")
                                 self.stop_dex()
                                 break
                         except Exception:
@@ -1344,11 +1351,13 @@ class DeXtopModeApp(ctk.CTk):
                 self.old_timeout = None
 
                 # Auto-repair One UI gesture navigation on exit (only in Secondary Display DeX mode)
-                if display_mode == "Secondary Display (DeX)" and self.config.get("fix_oneui_gestures", True) and device:
-                    try:
-                        self.repair_gestures_adb(device)
-                    except Exception as e:
-                        print(f"Could not repair gestures: {e}")
+                if not getattr(self, "gestures_already_repaired", False):
+                    if display_mode == "Secondary Display (DeX)" and self.config.get("fix_oneui_gestures", True) and device:
+                        try:
+                            self.repair_gestures_adb(device)
+                        except Exception as e:
+                            print(f"Could not repair gestures: {e}")
+                self.gestures_already_repaired = False
                 
                 # Restore DeXtop Mode window and reset launch button state
                 self.after(0, self.deiconify)
