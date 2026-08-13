@@ -1259,8 +1259,10 @@ class DeXtopModeApp(ctk.CTk):
                 # Execute in the background synchronously in this thread
                 self.dex_process = subprocess.Popen(
                     cmd,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1
                 )
                 
                 # Update button in GUI
@@ -1271,7 +1273,13 @@ class DeXtopModeApp(ctk.CTk):
                     hover_color="#ff3333"
                 ))
                 
-                # Wait for scrcpy to exit
+                # Wait for scrcpy to exit and monitor output for screen turn on
+                for line in iter(self.dex_process.stdout.readline, ""):
+                    if "Device screen turned on" in line:
+                        print("User woke up the phone. Stopping DeX automatically...")
+                        self.stop_dex()
+                        break
+                
                 self.dex_process.wait()
                 
             except Exception as e:
